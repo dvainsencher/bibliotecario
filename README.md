@@ -12,6 +12,12 @@ Organiza uma biblioteca pessoal de arquivos e cria uma busca por documento e por
 
 Se preferir fazer a preparação à mão: copie `config.exemplo.json` para `config.json` e ajuste os caminhos, escreva as suas tags em `.claude/skills/organizar/tags.md` (apagando a linha "Lista de exemplo"), troque SEU NOME no `CLAUDE.md` e rode `python3 scripts/verificar.py`.
 
+## O acervo é do bibliotecário
+
+Depois da primeira organização, o bibliotecário é dono da pasta do acervo. Não mova, não renomeie e não apague nada nela pelo Finder: peça ao Claude Code. Arquivo novo entra pela pasta `_entrada/` do acervo, e a skill organizar no modo entrada cuida dele.
+
+Se algo mudar por fora, o índice deixa de bater com as pastas. Ao abrir o projeto, a verificação avisa "acervo alterado fora do bibliotecário" e sugere a skill organizar, que reencontra o que foi renomeado ou movido, classifica o que chegou sem registro e confere o resto.
+
 ## O que tem aqui
 
 - `CLAUDE.md`: regras fixas que o Claude Code lê ao abrir a pasta.

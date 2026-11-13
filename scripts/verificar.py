@@ -17,9 +17,10 @@ if sys.version_info < (3, 9):
           "No Mac, rode no Terminal: xcode-select --install. Depois peça: use a skill preparar.")
     sys.exit(1)
 
-from comum import RAIZ, achar_pdftotext, arquivo_tags, ler_tags  # noqa: E402
+from comum import RAIZ, achar_pdftotext, arquivo_tags, carregar_config, ler_tags  # noqa: E402
 
 OK, AVISO, FALTA = "ok", "aviso", "falta"
+ACERVO_ALTERADO = "acervo alterado fora do bibliotecário"
 
 
 def checar():
@@ -43,6 +44,8 @@ def checar():
         itens.append((FALTA, "config.json", "copie config.exemplo.json para config.json e ajuste os caminhos"))
     else:
         itens += checar_config(config)
+        if all(i[0] == OK for i in itens if i[1] == "config.json"):
+            itens += checar_acervo()
 
     tags_md = arquivo_tags()
     if not tags_md.exists():
@@ -86,13 +89,48 @@ def checar_config(config):
     return itens
 
 
+def checar_acervo():
+    """Confere se o acervo bate com o índice. O acervo é do bibliotecário: mudança feita à mão vira aviso.
+
+    Fica de fora o que ainda não é do acervo (_entrada/), o que o desfazer guardou (_revisar/_desfeitos/)
+    e os arquivos ocultos do sistema (.DS_Store e afins).
+    """
+    try:
+        cfg = carregar_config()
+    except (SystemExit, KeyError, TypeError, ValueError, OSError):
+        return []
+    acervo, indice = Path(cfg["acervo"]), Path(cfg["indice"])
+    if not acervo.is_dir() or not indice.is_file():
+        return []
+    try:
+        with sqlite3.connect(f"{indice.as_uri()}?mode=ro", uri=True) as con:
+            registrados = {r[0] for r in con.execute("SELECT caminho FROM documentos")}
+    except sqlite3.Error:
+        return []
+    fora = (acervo / "_entrada", acervo / "_revisar" / "_desfeitos")
+    no_disco = {str(p) for p in acervo.rglob("*")
+                if p.is_file() and not any(parte.startswith(".") for parte in p.relative_to(acervo).parts)
+                and not any(f == p.parent or f in p.parents for f in fora)}
+    dentro = str(acervo) + os.sep
+    sumidos = [c for c in registrados if c.startswith(dentro) and not Path(c).exists()]
+    sem_registro = no_disco - registrados
+    if not sumidos and not sem_registro:
+        return [(OK, "acervo confere com o índice", "")]
+    return [(AVISO, ACERVO_ALTERADO,
+             f"{len(sem_registro)} arquivo(s) sem registro e {len(sumidos)} caminho(s) que sumiram. "
+             "Peça: use a skill organizar para reclassificar e verificar")]
+
+
+
 def main():
     curto = "--curto" in sys.argv
     itens = checar()
     problemas = [i for i in itens if i[0] != OK]
     if curto:
         if problemas:
-            print(f"Bibliotecário: {len(problemas)} item(ns) pedem atenção antes de usar. Peça: use a skill preparar.")
+            so_acervo = all(i[1] == ACERVO_ALTERADO for i in problemas)
+            skill = "organizar" if so_acervo else "preparar"
+            print(f"Bibliotecário: {len(problemas)} item(ns) pedem atenção antes de usar. Peça: use a skill {skill}.")
             for estado, item, fazer in problemas:
                 print(f"  {estado}: {item}: {fazer}")
     else:

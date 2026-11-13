@@ -3,7 +3,7 @@ Este projeto (bibliotecário) organiza e indexa a biblioteca de pesquisa de SEU 
 Caminhos: em config.json (pastas de origem, acervo organizado e índice). Copie de config.exemplo.json na primeira vez.
 Índice: caminho em config.json (padrão indice/biblioteca.db), com o esquema de esquema.sql.
 Skills: preparar (primeiro uso e instalação), organizar (montar o índice e organizar) e buscar (achar documentos e trechos).
-Ao abrir a pasta, um hook roda scripts/verificar.py --curto. Se ele mostrar algo pendente, ofereça a skill preparar.
+Ao abrir a pasta, um hook roda scripts/verificar.py --curto. Se ele mostrar algo pendente, ofereça a skill preparar. Se avisar "acervo alterado fora do bibliotecário", ofereça a skill organizar.
 
 Regras
 - Nunca apague arquivos. Nunca altere as pastas de origem.

@@ -12,6 +12,15 @@ Regras que valem sempre
 
 Antes de tudo: rode python3 scripts/verificar.py --curto. Se aparecer algo com "falta", pare e use a skill preparar.
 
+Acervo alterado fora do bibliotecário (aviso da verificação)
+Alguém mexeu no acervo sem passar por aqui. Explique isso em uma frase e, com a minha concordância:
+1. python3 scripts/inventario.py ACERVO (o caminho do acervo em config.json). Ele reencontra pelo hash o que foi renomeado ou movido e indexa o que chegou sem registro.
+2. Siga os passos 2 a 6 do modo lote para extrair o texto, classificar e procurar duplicados dos arquivos novos.
+3. Rode python3 scripts/verificar.py --curto de novo e python3 scripts/estado.py. Mostre o que mudou.
+4. Caminhos que continuarem sumidos: liste e pergunte o que aconteceu. Não apague registros.
+5. Os arquivos que chegaram sem registro ficam onde estão, com o nome que têm. Se eu quiser o nome e a pasta padrão, proponha movê-los para _entrada/ e rodar o modo entrada, só depois de "pode aplicar".
+Lembre que arquivo novo entra por _entrada/.
+
 Modo lote (acervo existente)
 1. python3 scripts/inventario.py
 2. python3 scripts/extrair_texto.py
