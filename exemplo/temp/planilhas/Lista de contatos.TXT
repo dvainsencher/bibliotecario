@@ -1,0 +1,15 @@
+nome;telefone;email;observacao
+Eduardo Nakamura Lins;+55 11 99552-1582;eduardo@exemplo.com.br;escola
+Tereza Cristina Borborema;+55 11 92943-6129;tereza@exemplo.com.br;escola
+Marina Vasconcelos Prado;+55 11 94173-2097;marina@exemplo.com.br;escola
+Cláudia Peixoto Sampaio;+55 11 92932-2776;cláudia@exemplo.com.br;médico
+Rafael Andrade Bittencourt;+55 11 97179-4386;rafael@exemplo.com.br;trabalho
+Cláudia Peixoto Sampaio;+55 11 99710-3807;cláudia@exemplo.com.br;escola
+Cláudia Peixoto Sampaio;+55 11 91334-8441;cláudia@exemplo.com.br;família
+Marina Vasconcelos Prado;+55 11 92083-1918;marina@exemplo.com.br;família
+Marina Vasconcelos Prado;+55 11 96562-5902;marina@exemplo.com.br;escola
+André Sampaio Ferraz;+55 11 98203-8344;andré@exemplo.com.br;trabalho
+Eduardo Nakamura Lins;+55 11 92005-3881;eduardo@exemplo.com.br;condomínio
+Rafael Andrade Bittencourt;+55 11 93383-7793;rafael@exemplo.com.br;médico
+Tereza Cristina Borborema;+55 11 93982-2481;tereza@exemplo.com.br;médico
+Otávio Bandeira Coelho;+55 11 97157-3376;otávio@exemplo.com.br;trabalho

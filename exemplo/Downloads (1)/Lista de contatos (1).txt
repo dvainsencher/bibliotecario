@@ -1,0 +1,14 @@
+nome;telefone;email;observacao
+Cláudia Peixoto Sampaio;+55 11 95589-6912;cláudia@exemplo.com.br;trabalho
+Fábio Quintanilha Méier;+55 11 96816-7345;fábio@exemplo.com.br;trabalho
+Tereza Cristina Borborema;+55 11 98147-2012;tereza@exemplo.com.br;escola
+Luciana Sarmento Vidal;+55 11 97571-3936;luciana@exemplo.com.br;família
+Patrícia Nogueira Valadares;+55 11 98830-6408;patrícia@exemplo.com.br;condomínio
+Marina Vasconcelos Prado;+55 11 97359-1221;marina@exemplo.com.br;trabalho
+Fábio Quintanilha Méier;+55 11 95675-4050;fábio@exemplo.com.br;escola
+Rafael Andrade Bittencourt;+55 11 94217-2630;rafael@exemplo.com.br;trabalho
+Luciana Sarmento Vidal;+55 11 96431-8240;luciana@exemplo.com.br;família
+André Sampaio Ferraz;+55 11 94703-1652;andré@exemplo.com.br;escola
+Tereza Cristina Borborema;+55 11 92744-6944;tereza@exemplo.com.br;condomínio
+Sérgio Bastos Lombardi;+55 11 94435-4519;sérgio@exemplo.com.br;condomínio
+Otávio Bandeira Coelho;+55 11 93372-6032;otávio@exemplo.com.br;família

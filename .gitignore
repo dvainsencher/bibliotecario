@@ -55,3 +55,9 @@ CLAUDE.local.md
 __pycache__/
 *.pyc
 .venv/
+
+# Acervo organizado, quando fica dentro do projeto (padrão do config.exemplo.json)
+biblioteca/
+
+# A amostra de treino vai para o git. Não ponha arquivos seus em exemplo/.
+!exemplo/**

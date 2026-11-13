@@ -1,0 +1,34 @@
+data;estabelecimento;categoria;valor
+05/06/2023;Uber;Transporte;744,36
+05/06/2023;Posto Ipiranga;Saúde;673,89
+08/06/2023;Farmácia Central;Assinaturas;399,21
+11/06/2023;Farmácia Central;Moradia;122,50
+15/06/2023;Uber;Saúde;39,71
+19/06/2023;Farmácia Central;Transporte;776,90
+22/06/2023;Uber;Moradia;676,85
+25/06/2023;Uber;Moradia;824,23
+28/06/2023;Farmácia Central;Vestuário;769,33
+30/06/2023;Padaria São Jorge;Moradia;570,11
+04/07/2023;Farmácia Central;Lazer;727,14
+08/07/2023;Uber;Saúde;503,76
+08/07/2023;Posto Ipiranga;Assinaturas;476,66
+11/07/2023;Mercado Bom Preço;Moradia;448,98
+11/07/2023;Padaria São Jorge;Outros;845,02
+13/07/2023;Farmácia Central;Lazer;257,99
+15/07/2023;Mercado Bom Preço;Assinaturas;261,23
+18/07/2023;Mercado Bom Preço;Transporte;240,19
+19/07/2023;Farmácia Central;Assinaturas;9,72
+21/07/2023;Mercado Bom Preço;Lazer;66,57
+23/07/2023;Farmácia Central;Transporte;776,46
+27/07/2023;Farmácia Central;Alimentação;479,17
+31/07/2023;Padaria São Jorge;Moradia;434,96
+04/08/2023;Padaria São Jorge;Transporte;280,21
+06/08/2023;Posto Ipiranga;Saúde;64,96
+08/08/2023;Padaria São Jorge;Moradia;154,57
+08/08/2023;Padaria São Jorge;Saúde;716,46
+09/08/2023;Uber;Alimentação;891,90
+13/08/2023;Farmácia Central;Assinaturas;49,54
+15/08/2023;Farmácia Central;Moradia;452,90
+19/08/2023;Posto Ipiranga;Moradia;192,38
+19/08/2023;Padaria São Jorge;Outros;544,98
+22/08/2023;Mercado Bom Preço;Outros;386,52

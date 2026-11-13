@@ -1,6 +1,6 @@
 {
-  "origens": ["~/Documents/Amostra"],
-  "acervo": "~/Documents/Biblioteca",
+  "origens": ["exemplo"],
+  "acervo": "biblioteca",
   "indice": "indice/biblioteca.db",
   "lotes": "indice/lotes"
 }

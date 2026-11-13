@@ -1,0 +1,10 @@
+nome;telefone;email;observacao
+Rafael Andrade Bittencourt;+55 11 92793-4899;rafael@exemplo.com.br;trabalho
+Patrícia Nogueira Valadares;+55 11 92212-3750;patrícia@exemplo.com.br;trabalho
+Helena Furtado Rios;+55 11 94757-7278;helena@exemplo.com.br;condomínio
+Rafael Andrade Bittencourt;+55 11 93349-5184;rafael@exemplo.com.br;médico
+Eduardo Nakamura Lins;+55 11 93583-4098;eduardo@exemplo.com.br;família
+Tereza Cristina Borborema;+55 11 96908-9595;tereza@exemplo.com.br;escola
+Cláudia Peixoto Sampaio;+55 11 93499-7841;cláudia@exemplo.com.br;médico
+Helena Furtado Rios;+55 11 99351-2196;helena@exemplo.com.br;médico
+Fábio Quintanilha Méier;+55 11 97407-5337;fábio@exemplo.com.br;condomínio
