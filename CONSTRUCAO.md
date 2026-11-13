@@ -1,6 +1,6 @@
 # Como este projeto foi construído
 
-Este guia refaz a construção do bibliotecário do ponto de vista de quem pesquisa. Começa com um pedido ingênuo, passa pela busca e chega ao projeto completo. Cada etapa traz o pedido, o que observar na resposta e o que aquela etapa virou no projeto.
+Este guia refaz a construção do bibliotecário do ponto de vista de quem pesquisa. Começa com um pedido do jeito mais simples, passa pela busca e chega ao projeto completo. Cada etapa traz o pedido, o que observar na resposta e o que aquela etapa virou no projeto.
 
 Os pedidos são pontos de partida. Escreva o seu com as suas palavras, compare com o daqui e ajuste. Quem conhece o problema é você.
 
@@ -24,7 +24,7 @@ O básico dentro do Claude Code:
 | Ver quanto do limite do plano você usou | `/usage` |
 | Sair | `/exit` |
 
-## Etapa 0: a abordagem ingênua
+## Etapa 0: a primeira rodada
 
 Pedidos:
 

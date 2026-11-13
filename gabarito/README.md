@@ -6,7 +6,7 @@ Não ponha arquivos seus nesta pasta. Ela vai para o git. Os seus ficam em outra
 
 ## Buscas com resposta conhecida
 
-Use estas buscas para saber se a sua solução funciona. Os locais são os que a skill buscar mostra.
+Use estas buscas para saber se a sua solução funciona. A resposta certa é o documento. Os caminhos abaixo são os da amostra antes de organizar: depois da organização, o arquivo ganha outro nome e outra pasta, e a resposta continua a mesma. Os locais (página, linha, parágrafo) são os que a skill buscar mostra.
 
 | Pergunta | Resposta |
 |---|---|

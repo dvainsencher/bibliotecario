@@ -20,7 +20,7 @@ Se preferir fazer a preparação à mão: copie `config.exemplo.json` para `conf
 
 ## Como foi construído
 
-[CONSTRUCAO.md](CONSTRUCAO.md) refaz a construção deste projeto do ponto de vista de quem pesquisa: começa por um pedido ingênuo, passa pela busca e chega ao projeto completo, com os pedidos de cada etapa. Para treinar, use a amostra `exemplo/` e confira o resultado em [gabarito/](gabarito/README.md).
+[CONSTRUCAO.md](CONSTRUCAO.md) refaz a construção deste projeto do ponto de vista de quem pesquisa: começa por um pedido do jeito mais simples, passa pela busca e chega ao projeto completo, com os pedidos de cada etapa. Para treinar, use a amostra `exemplo/` e confira o resultado em [gabarito/](gabarito/README.md).
 
 ## O acervo é do bibliotecário
 
