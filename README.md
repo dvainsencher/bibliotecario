@@ -8,9 +8,9 @@ Organiza uma biblioteca pessoal de arquivos e cria uma busca por documento e por
 
 Tudo acontece no Terminal (no Mac: Aplicativos, Utilitários, Terminal).
 
-1. Instale o Claude Code, se ainda não tiver: `curl -fsSL https://claude.ai/install.sh | bash`. Feche e abra o Terminal e confira com `claude --version`. É preciso o plano Pro ou maior. Para não ter cobrança surpresa, deixe desligado o uso de créditos: no claude.ai, Settings, Usage, opção "Usage credits" desligada. Na primeira vez que abrir o Claude Code, entre com a conta do Pro, não com uma chave de API.
+1. Instale o Claude Code, se ainda não tiver: `curl -fsSL https://claude.ai/install.sh | bash`. Feche e abra o Terminal e confira com `claude --version`. É preciso o plano Pro ou maior. Para não ter cobrança surpresa, deixe desligado o uso de créditos: no claude.ai, Settings, Usage, opção "Usage credits" desligada.
 2. Baixe o projeto: `git clone https://github.com/dvainsencher/bibliotecario.git ~/projetos-ia/bibliotecario`. Evite as pastas Documentos e Mesa: o iCloud costuma sincronizá-las, e a indexação não se dá bem com pasta sincronizada.
-3. Entre na pasta e abra o Claude Code: `cd ~/projetos-ia/bibliotecario` e depois `claude`. Na primeira vez, ele abre o navegador para você entrar na sua conta.
+3. Entre na pasta e abra o Claude Code: `cd ~/projetos-ia/bibliotecario` e depois `claude`. Na primeira vez, ele abre o navegador para você entrar na sua conta: entre com a conta do Pro, não com uma chave de API.
 4. Peça: "Use a skill preparar". Ela confere o que falta (Python, pdftotext, configuração), ajuda a instalar, cria o `config.json`, escreve as suas tags e roda o teste.
 5. Depois peça: "Use a skill organizar no modo lote".
 

@@ -12,7 +12,7 @@ Para treinar, use a amostra `exemplo/`, que vem no projeto. As respostas certas 
 2. Crie uma pasta vazia para o seu projeto e entre nela: `mkdir -p ~/projetos-ia/minha-biblioteca` e `cd ~/projetos-ia/minha-biblioteca`.
 3. Copie a amostra para lá, para trabalhar sobre uma cópia: `cp -R ~/projetos-ia/bibliotecario/exemplo ~/projetos-ia/minha-biblioteca/amostra` (depois de baixar o bibliotecário com `git clone`, como no README).
 4. Abra o Claude Code: `claude`. Na primeira vez, ele abre o navegador para você entrar na conta. Entre com a conta do Pro, não com uma chave de API.
-5. Para não ter cobrança surpresa: no claude.ai, Settings, Usage, deixe desligada a opção "Usage credits". Desligada, quando o limite do Pro acaba, o Claude Code espera o limite renovar em vez de cobrar.
+5. Para não ter cobrança surpresa: no claude.ai, Settings, Usage, deixe desligada a opção "Usage credits". Com a opção desligada, quando o limite do Pro acaba, o Claude Code espera o limite renovar em vez de cobrar.
 
 O básico dentro do Claude Code:
 

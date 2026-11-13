@@ -8,7 +8,7 @@ De onde veio cada arquivo de `exemplo/` e o que ele é. Serve de gabarito da cla
 - **TheMealDB:** receitas da base aberta themealdb.com, convertidas em PDF ou HTML.
 - **Sintético:** inventado para o treinamento. Nomes, CPFs, CNPJs e valores são falsos (os números não passam no dígito verificador).
 - **Fichamento de Guimarães:** escrito para o treinamento, sobre o artigo de mesmo nome que está na amostra.
-- **Adorno:** *A teoria freudiana e o modelo fascista de propaganda* (1951), tradução de Francisco Rüdiger, publicada no [Arquivo Marxista na Internet](https://www.marxists.org/portugues/adorno/1951/mes/teoria.htm), com fonte no blog do tradutor e no NUPESE (UFG). Paginado em PDF para o treinamento. Os direitos são do autor e do tradutor.
+- **Adorno:** *A teoria freudiana e o modelo fascista de propaganda* (1951), tradução de Francisco Rüdiger, publicada no [Arquivo Marxista na Internet](https://www.marxists.org/portugues/adorno/1951/mes/teoria.htm), que indica como fontes o [blog do tradutor](https://franciscorudiger.blogspot.com/p/bibliografia-c-traducoes.html) e o NUPESE (UFG). O original é "Freudian Theory and the Pattern of Fascist Propaganda", publicado em inglês em 1951. Paginado em PDF para o treinamento. Os direitos são do autor e do tradutor.
 
 | Arquivo | O que é | Título | Fonte |
 |---|---|---|---|
