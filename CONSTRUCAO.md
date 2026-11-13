@@ -9,44 +9,31 @@ Para treinar, use a amostra `exemplo/`, que vem no projeto. As respostas certas 
 ## Antes de começar: o Claude Code no Terminal
 
 1. Instale, se ainda não tiver: `curl -fsSL https://claude.ai/install.sh | bash`. Feche e abra o Terminal e confira com `claude --version`.
-2. Crie uma pasta vazia para o seu projeto e entre nela: `mkdir -p ~/projetos-ia/minha-biblioteca` e `cd ~/projetos-ia/minha-biblioteca`.
-3. Copie a amostra para lá, para trabalhar sobre uma cópia: `cp -R ~/projetos-ia/bibliotecario/exemplo ~/projetos-ia/minha-biblioteca/amostra` (depois de baixar o bibliotecário com `git clone`, como no README).
-4. Abra o Claude Code: `claude`. Na primeira vez, ele abre o navegador para você entrar na conta. Entre com a conta do Pro, não com uma chave de API.
-5. Para não ter cobrança surpresa: no claude.ai, Settings, Usage, deixe desligada a opção "Usage credits". Com a opção desligada, quando o limite do Pro acaba, o Claude Code espera o limite renovar em vez de cobrar.
+2. Para não ter cobrança surpresa: no claude.ai, Settings, Usage, deixe desligada a opção "Usage credits". Com a opção desligada, quando o limite do Pro acaba, o Claude Code espera o limite renovar em vez de cobrar.
+3. Crie uma pasta vazia para o seu projeto, entre nela e abra o Claude Code:
+
+   ```
+   mkdir -p ~/projetos-ia/minha-biblioteca
+   cd ~/projetos-ia/minha-biblioteca
+   claude
+   ```
+
+   Na primeira vez, ele abre o navegador para você entrar na conta. Entre com a conta do Pro, não com uma chave de API.
+4. Dentro do Claude Code, escolha o Sonnet: `/model sonnet`. Ele responde bem e gasta menos do limite do Pro que o Opus.
 
 O básico dentro do Claude Code:
 
 | Para | Faça |
 |---|---|
+| Usar o Sonnet | `/model sonnet` |
 | Entrar no modo Plan (ele planeja e não mexe em nada) | Shift+Tab até aparecer "plan mode" |
 | Interromper o que ele está fazendo | Esc |
+| Rodar um comando do Terminal sem sair | comece a linha com `!` |
 | Começar uma conversa nova | `/clear` |
 | Ver quanto do limite do plano você usou | `/usage` |
 | Sair | `/exit` |
 
-## Etapa 0: a primeira rodada
-
-Pedidos:
-
-```
-Organize os arquivos da pasta amostra.
-```
-
-```
-Onde está o fichamento em que eu anotei que, para as elites, o Brasil era
-uma nação sem povo?
-```
-
-O que observar:
-
-- Ele mostrou um plano antes de mexer? Moveu ou renomeou sem perguntar?
-- Inventou autor, título ou página?
-- Abriu os arquivos inteiros para responder? Funciona com 40 arquivos. Com 2.000, gasta o limite do plano e erra mais.
-- Semana que vem, ele começa do zero: nada ficou registrado.
-
-O que virou no projeto: nada. Esta etapa mostra por que as outras existem. De longe, "organiza minha pasta" parece um pedido só. São vários problemas juntos.
-
-## Etapa 1: configurar o projeto
+## Etapa 0: configurar o projeto
 
 O `CLAUDE.md` é um arquivo de texto que o Claude Code lê toda vez que abre a pasta. Ali ficam quem você é, o que o projeto faz, onde estão as coisas e as regras que não mudam. Sem ele, cada conversa começa do zero.
 
@@ -65,6 +52,40 @@ entrevistas). Responda em português, com frases curtas.
 O que observar: leia o `CLAUDE.md` que ele escreveu. Corrija o que não for você. Ele vai obedecer a esse arquivo.
 
 O que virou no projeto: o [CLAUDE.md](CLAUDE.md) do bibliotecário.
+
+Depois, traga a amostra para a sua pasta. Dentro do Claude Code, a linha que começa com `!` roda um comando do Terminal:
+
+```
+! git -C ~/projetos-ia clone https://github.com/dvainsencher/bibliotecario.git
+! cp -R ~/projetos-ia/bibliotecario/exemplo amostra
+! ls amostra
+```
+
+Trabalhe sempre na cópia: a pasta `exemplo/` do bibliotecário fica intacta.
+
+## Etapa 1: a primeira rodada
+
+Pedidos:
+
+```
+Organize os arquivos da pasta amostra.
+```
+
+```
+Onde está o fichamento em que eu anotei que, para as elites, o Brasil era
+uma nação sem povo?
+```
+
+O que observar:
+
+- Ele mostrou um plano antes de mexer? Moveu ou renomeou sem perguntar?
+- Inventou autor, título ou página?
+- Abriu os arquivos inteiros para responder? Funciona com 190 arquivos. Com 2.000, gasta o limite do plano e erra mais.
+- Semana que vem, ele começa do zero: nada ficou registrado.
+
+Depois, faça as outras buscas do [gabarito](gabarito/README.md) e anote o placar. É com ele que você compara as próximas etapas.
+
+O que virou no projeto: nada. Esta etapa mostra por que as outras existem. De longe, "organiza minha pasta" parece um pedido só. São vários problemas juntos.
 
 ## Etapa 2: definir o problema
 
@@ -216,7 +237,7 @@ O que virou no projeto: [.claude/skills/organizar/SKILL.md](.claude/skills/organ
 
 | Etapa | Virou |
 |---|---|
-| 1. Configurar o projeto | `CLAUDE.md` |
+| 0. Configurar o projeto | `CLAUDE.md` |
 | 2. Definir o problema | `esquema.sql` |
 | 3. Indexação | `inventario.py`, `extrair_texto.py` |
 | 4. Busca | `buscar.py`, `ler_paginas.py` |
