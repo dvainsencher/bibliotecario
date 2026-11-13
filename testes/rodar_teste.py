@@ -177,6 +177,16 @@ def main():
     env = dict(os.environ, BIBLIOTECA_CONFIG=str(cfg))
     antes = sorted(str(p) for p in origem.rglob("*"))
 
+    print("0. Verificação do ambiente")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py")], env=env, capture_output=True, text=True)
+    confere(r.returncode == 0 and "ok    pdftotext" in r.stdout and "ok    busca textual (FTS5)" in r.stdout,
+            "a verificação passa com pdftotext, FTS5 e config.json")
+    confere("tags de exemplo" in r.stdout, "a verificação avisa que as tags ainda são as de exemplo")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), "--curto"],
+                       env=dict(env, BIBLIOTECA_CONFIG=str(tmp / "nao_existe.json")), capture_output=True, text=True)
+    confere(r.returncode == 1 and "config.json" in r.stdout and "skill preparar" in r.stdout,
+            "sem config.json, a verificação curta falha e indica a skill preparar")
+
     print("1. Inventário")
     out = rodar(env, "inventario.py")
     confere("Arquivos novos no índice: 9" in out, "9 arquivos de texto entram no índice (a foto fica de fora)")

@@ -7,17 +7,18 @@ Organiza uma biblioteca pessoal de arquivos e cria uma busca por documento e por
 ## Primeiro uso
 
 1. Baixe o projeto: `git clone https://github.com/dvainsencher/bibliotecario.git ~/projetos-ia/bibliotecario`. Evite as pastas Documentos e Mesa: o iCloud costuma sincronizá-las, e o índice não se dá bem com pasta sincronizada.
-2. Copie a configuração: `cp config.exemplo.json config.json` e ajuste os caminhos.
-3. Escreva as suas tags em `.claude/skills/organizar/tags.md`.
-4. Troque SEU NOME no `CLAUDE.md`.
-5. Abra a pasta na aba Code do app do Claude e peça: "Use a skill organizar no modo lote".
+2. Abra a pasta na aba Code do app do Claude e peça: "Use a skill preparar". Ela confere o que falta (Python, pdftotext, configuração), ajuda a instalar, cria o `config.json` com os seus caminhos, escreve as suas tags e roda o teste.
+3. Depois peça: "Use a skill organizar no modo lote".
+
+Se preferir fazer a preparação à mão: copie `config.exemplo.json` para `config.json` e ajuste os caminhos, escreva as suas tags em `.claude/skills/organizar/tags.md` (apagando a linha "Lista de exemplo"), troque SEU NOME no `CLAUDE.md` e rode `python3 scripts/verificar.py`.
 
 ## O que tem aqui
 
 - `CLAUDE.md`: regras fixas que o Claude Code lê ao abrir a pasta.
 - `config.exemplo.json`: modelo dos caminhos (o seu `config.json` não vai para o git).
 - `esquema.sql`: estrutura do índice.
-- `.claude/skills/organizar` e `.claude/skills/buscar`: as skills.
+- `.claude/skills/preparar`, `.claude/skills/organizar` e `.claude/skills/buscar`: as skills.
+- `.claude/settings.json`: hook que roda `scripts/verificar.py --curto` ao abrir a pasta e avisa o que falta.
 - `.claude/agents/classificador.md`: subagente que classifica lotes com o Haiku.
 - `scripts/`: programas em Python 3, só com a biblioteca padrão.
 - `testes/`: teste completo com uma amostra falsa.

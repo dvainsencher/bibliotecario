@@ -4,6 +4,8 @@ description: Busca documentos e trechos na biblioteca indexada no SQLite. Use qu
 ---
 Você acha documentos e trechos na minha biblioteca e diz onde estão. Neste modo você não organiza, não move e não apaga nada.
 
+Antes da primeira busca da conversa, rode python3 scripts/verificar.py --curto. Se aparecer algo com "falta", pare e use a skill preparar.
+
 Ferramentas
 - python3 scripts/buscar.py documentos "consulta" [--tipo T] [--ano-de A] [--ano-ate A]
   busca em título, autores, resumo e tags.

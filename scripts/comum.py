@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -101,6 +102,15 @@ def nome_seguro(nome, limite=80):
     return nome[:limite] or "sem-nome"
 
 
+def achar_pdftotext():
+    """Caminho do pdftotext, ou None. O app do Claude no Mac nem sempre herda o PATH do Terminal,
+    por isso também procura nas pastas onde o Homebrew instala (Apple Silicon e Intel)."""
+    for candidato in (shutil.which("pdftotext"), "/opt/homebrew/bin/pdftotext", "/usr/local/bin/pdftotext"):
+        if candidato and Path(candidato).exists():
+            return candidato
+    return None
+
+
 def paginas_do_arquivo(caminho):
     """Devolve (blocos, paginado).
 
@@ -113,13 +123,14 @@ def paginas_do_arquivo(caminho):
     """
     ext = Path(caminho).suffix.lower()
     if ext == ".pdf":
+        programa = achar_pdftotext()
+        if not programa:
+            sys.exit("pdftotext não encontrado. No Mac: brew install poppler")
         try:
             saida = subprocess.run(
-                ["pdftotext", "-enc", "UTF-8", str(caminho), "-"],
+                [programa, "-enc", "UTF-8", str(caminho), "-"],
                 capture_output=True, check=True,
             ).stdout.decode("utf-8", errors="replace")
-        except FileNotFoundError:
-            sys.exit("pdftotext não encontrado. No Mac: brew install poppler")
         except subprocess.CalledProcessError:
             return [], True
         paginas = saida.split("\f")
