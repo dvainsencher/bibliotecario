@@ -79,10 +79,11 @@ def checar_config(config):
         return [(FALTA, "config.json", formato)]
     origens = cfg.get("origens", [])
     if not isinstance(origens, list) or not all(isinstance(o, str) for o in origens):
-        return [(FALTA, "config.json", 'origens precisa ser uma lista de pastas, como ["~/Documents/Amostra"]')]
+        return [(FALTA, "config.json", 'origens precisa ser uma lista de pastas, como ["exemplo"] ou ["~/Documents/Amostra"]')]
     itens = [(OK, "config.json", "")]
     for origem in origens:
-        if Path(origem).expanduser().is_dir():
+        caminho = Path(origem).expanduser()
+        if (caminho if caminho.is_absolute() else config.parent / caminho).is_dir():
             itens.append((OK, f"pasta de origem {origem}", ""))
         else:
             itens.append((FALTA, f"pasta de origem {origem}", "a pasta não existe: corrija o caminho em config.json"))

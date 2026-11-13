@@ -207,6 +207,19 @@ def main():
                        env=dict(env, BIBLIOTECA_TAGS=str(tmp / "sumiu.md")), capture_output=True, text=True)
     confere(not r.stderr and "lista de tags não encontrada" in r.stdout, "tags.md apagado vira 'falta', sem erro de Python")
 
+    relativo = tmp / "config_relativo.json"
+    relativo.write_text('{"origens": ["Amostra"], "acervo": "Biblioteca"}', encoding="utf-8")
+    r = subprocess.run([sys.executable, "-c", "import json, comum; print(json.dumps(comum.carregar_config()))"],
+                       env=dict(env, BIBLIOTECA_CONFIG=str(relativo), PYTHONPATH=str(SCRIPTS)),
+                       cwd=tempfile.gettempdir(), capture_output=True, text=True)
+    cfg_rel = json.loads(r.stdout) if r.returncode == 0 else {}
+    confere(cfg_rel.get("origens") == [str(tmp / "Amostra")] and cfg_rel.get("acervo") == str(tmp / "Biblioteca"),
+            "caminhos relativos em config.json valem a partir da pasta do projeto, de qualquer pasta atual")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), "--curto"],
+                       env=dict(env, BIBLIOTECA_CONFIG=str(relativo)), cwd=tempfile.gettempdir(),
+                       capture_output=True, text=True)
+    confere("a pasta não existe" not in r.stdout, "a verificação acha a pasta de origem relativa, de qualquer pasta atual")
+
     print("1. Inventário")
     out = rodar(env, "inventario.py")
     confere("Arquivos novos no índice: 9" in out, "9 arquivos de texto entram no índice (a foto fica de fora)")

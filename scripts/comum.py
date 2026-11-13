@@ -44,12 +44,15 @@ def carregar_config():
         sys.exit(f"Não achei {caminho}. Copie config.exemplo.json para config.json e ajuste os caminhos.")
     cfg = json.loads(caminho.read_text(encoding="utf-8"))
     base = caminho.parent
-    cfg["origens"] = [str(Path(p).expanduser()) for p in cfg.get("origens", [])]
-    cfg["acervo"] = str(Path(cfg["acervo"]).expanduser())
-    indice = Path(cfg.get("indice", "indice/biblioteca.db")).expanduser()
-    cfg["indice"] = str(indice if indice.is_absolute() else base / indice)
-    lotes = Path(cfg.get("lotes", "indice/lotes")).expanduser()
-    cfg["lotes"] = str(lotes if lotes.is_absolute() else base / lotes)
+    def resolver(valor):
+        # Caminho relativo vale a partir da pasta do config.json, não da pasta atual
+        caminho = Path(valor).expanduser()
+        return str(caminho if caminho.is_absolute() else base / caminho)
+
+    cfg["origens"] = [resolver(p) for p in cfg.get("origens", [])]
+    cfg["acervo"] = resolver(cfg["acervo"])
+    cfg["indice"] = resolver(cfg.get("indice", "indice/biblioteca.db"))
+    cfg["lotes"] = resolver(cfg.get("lotes", "indice/lotes"))
     return cfg
 
 
