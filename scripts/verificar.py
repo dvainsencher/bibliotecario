@@ -18,7 +18,7 @@ if sys.version_info < (3, 9):
           "No Mac, rode no Terminal: xcode-select --install. Depois peça: use a skill preparar.")
     sys.exit(1)
 
-from comum import EXTENSOES, RAIZ, achar_pdftotext, arquivo_tags, carregar_config, ler_tags  # noqa: E402
+from comum import EXTENSOES, RAIZ, achar_pdftotext, arquivo_tags, carregar_config, ler_tags, resolver  # noqa: E402
 
 OK, AVISO, FALTA = "ok", "aviso", "falta"
 ACERVO_ALTERADO = "acervo alterado fora do bibliotecário"
@@ -82,8 +82,7 @@ def checar_config(config):
         return [(FALTA, "config.json", 'origens precisa ser uma lista de pastas, como ["exemplo"] ou ["~/Documents/Amostra"]')]
     itens = [(OK, "config.json", "")]
     for origem in origens:
-        caminho = Path(origem).expanduser()
-        if (caminho if caminho.is_absolute() else config.parent / caminho).is_dir():
+        if resolver(origem, Path(config).parent).is_dir():
             itens.append((OK, f"pasta de origem {origem}", ""))
         else:
             itens.append((FALTA, f"pasta de origem {origem}", "a pasta não existe: corrija o caminho em config.json"))

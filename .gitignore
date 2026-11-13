@@ -61,3 +61,14 @@ biblioteca/
 
 # A amostra de treino vai para o git. Não ponha arquivos seus em exemplo/.
 !exemplo/**
+# ...menos o que o sistema e o bibliotecário criam dentro dela
+exemplo/**/.DS_Store
+exemplo/**/._*
+exemplo/**/.env
+exemplo/**/.env.*
+exemplo/**/*.key
+exemplo/**/*.pem
+exemplo/**/*.db
+exemplo/**/*.db-*
+exemplo/**/*.sqlite*
+exemplo/**/*.jsonl

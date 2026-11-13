@@ -38,21 +38,22 @@ EXTENSOES = {".pdf", ".docx", ".txt", ".md"}
 PALAVRAS_POR_BLOCO = 400
 
 
+def resolver(valor, base):
+    """Caminho do config.json: ~ expandido; relativo vale a partir da pasta do config.json, não da pasta atual."""
+    p = Path(valor).expanduser()
+    return p if p.is_absolute() else Path(base) / p
+
+
 def carregar_config():
     caminho = Path(os.environ.get("BIBLIOTECA_CONFIG", RAIZ / "config.json"))
     if not caminho.exists():
         sys.exit(f"Não achei {caminho}. Copie config.exemplo.json para config.json e ajuste os caminhos.")
     cfg = json.loads(caminho.read_text(encoding="utf-8"))
     base = caminho.parent
-    def resolver(valor):
-        # Caminho relativo vale a partir da pasta do config.json, não da pasta atual
-        caminho = Path(valor).expanduser()
-        return str(caminho if caminho.is_absolute() else base / caminho)
-
-    cfg["origens"] = [resolver(p) for p in cfg.get("origens", [])]
-    cfg["acervo"] = resolver(cfg["acervo"])
-    cfg["indice"] = resolver(cfg.get("indice", "indice/biblioteca.db"))
-    cfg["lotes"] = resolver(cfg.get("lotes", "indice/lotes"))
+    cfg["origens"] = [str(resolver(p, base)) for p in cfg.get("origens", [])]
+    cfg["acervo"] = str(resolver(cfg["acervo"], base))
+    cfg["indice"] = str(resolver(cfg.get("indice", "indice/biblioteca.db"), base))
+    cfg["lotes"] = str(resolver(cfg.get("lotes", "indice/lotes"), base))
     return cfg
 
 

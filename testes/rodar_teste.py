@@ -215,10 +215,19 @@ def main():
     cfg_rel = json.loads(r.stdout) if r.returncode == 0 else {}
     confere(cfg_rel.get("origens") == [str(tmp / "Amostra")] and cfg_rel.get("acervo") == str(tmp / "Biblioteca"),
             "caminhos relativos em config.json valem a partir da pasta do projeto, de qualquer pasta atual")
-    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), "--curto"],
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py")],
                        env=dict(env, BIBLIOTECA_CONFIG=str(relativo)), cwd=tempfile.gettempdir(),
                        capture_output=True, text=True)
-    confere("a pasta não existe" not in r.stdout, "a verificação acha a pasta de origem relativa, de qualquer pasta atual")
+    confere(re.search(r"^\s*ok\s+pasta de origem Amostra", r.stdout, re.M) and "a pasta não existe" not in r.stdout,
+            "a verificação acha a pasta de origem relativa, de qualquer pasta atual")
+    if (RAIZ / ".git").exists() and shutil.which("git"):
+        # A amostra vai para o git, mas o que o Mac e o bibliotecário criam dentro dela não pode ir
+        nomes = ["exemplo/.DS_Store", "exemplo/pasta/._foto.pdf", "exemplo/.env", "exemplo/chave.key",
+                 "exemplo/indice.db", "exemplo/lotes/lote_001_resposta.jsonl"]
+        r = subprocess.run(["git", "-C", str(RAIZ), "check-ignore", "--no-index"] + nomes,
+                           capture_output=True, text=True)
+        ignorados = set(r.stdout.split())
+        confere(ignorados == set(nomes), "arquivos de sistema, segredos e bancos dentro de exemplo/ ficam fora do git")
 
     print("1. Inventário")
     out = rodar(env, "inventario.py")
