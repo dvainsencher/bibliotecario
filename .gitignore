@@ -1,0 +1,57 @@
+# Documentos de pesquisa: nunca no git
+*.pdf
+*.doc
+*.docx
+*.odt
+*.rtf
+*.epub
+*.xls
+*.xlsx
+*.ods
+*.csv
+*.ppt
+*.pptx
+
+# Imagens, áudio e vídeo (entrevistas gravadas)
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.tif
+*.tiff
+*.mp3
+*.m4a
+*.wav
+*.mp4
+*.mov
+
+# Índice, lotes e bancos (guardam o texto dos documentos)
+indice/
+exportacoes/
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.jsonl
+
+# Configuração pessoal (caminhos do seu Mac)
+config.json
+
+# Segredos
+.env
+.env.*
+*.key
+*.pem
+
+# Configuração local do Claude Code
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Sistema e Python
+.DS_Store
+._*
+__pycache__/
+*.pyc
+.venv/

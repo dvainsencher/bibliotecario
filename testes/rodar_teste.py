@@ -1,0 +1,247 @@
+"""Teste completo do fluxo da biblioteca com uma amostra falsa, numa pasta temporária.
+
+Não toca nos seus arquivos nem no seu índice. Uso: python3 testes/rodar_teste.py
+O subagente classificador é simulado: lê os metadados escritos na própria amostra.
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import zipfile
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parent.parent
+SCRIPTS = RAIZ / "scripts"
+LONGO = ("Este paragrafo existe para que a pagina tenha texto suficiente para ser considerada util "
+         "pelo seletor de paginas. ") * 12
+
+
+# ---------- amostra falsa ----------
+
+def pdf(caminho, paginas):
+    """PDF mínimo, uma página por item de `paginas` (texto com quebras de linha)."""
+    objs = ["<< /Type /Catalog /Pages 2 0 R >>", None,
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"]
+    kids = []
+    for texto in paginas:
+        linhas = []
+        for linha in texto.split("\n"):
+            while len(linha) > 90:
+                corte = linha.rfind(" ", 0, 90)
+                corte = corte if corte > 0 else 90
+                linhas.append(linha[:corte])
+                linha = linha[corte:].lstrip()
+            linhas.append(linha)
+        corpo = "BT /F1 10 Tf 40 800 Td 13 TL\n" + "".join(
+            "(" + l.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)") + ") '\n" for l in linhas) + "ET"
+        stream = corpo.encode("cp1252", errors="replace")
+        objs.append(("stream", stream))
+        n_conteudo = len(objs)
+        objs.append(f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+                    f"/Resources << /Font << /F1 3 0 R >> >> /Contents {n_conteudo} 0 R >>")
+        kids.append(len(objs))
+    objs[1] = f"<< /Type /Pages /Kids [{' '.join(f'{k} 0 R' for k in kids)}] /Count {len(kids)} >>"
+    saida, offsets = bytearray(b"%PDF-1.4\n"), []
+    for i, o in enumerate(objs, start=1):
+        offsets.append(len(saida))
+        if isinstance(o, tuple):
+            saida += f"{i} 0 obj\n<< /Length {len(o[1])} >>\nstream\n".encode() + o[1] + b"\nendstream\nendobj\n"
+        else:
+            saida += f"{i} 0 obj\n{o}\nendobj\n".encode("latin-1")
+    xref = len(saida)
+    saida += f"xref\n0 {len(objs) + 1}\n0000000000 65535 f \n".encode()
+    for off in offsets:
+        saida += f"{off:010d} 00000 n \n".encode()
+    saida += f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    Path(caminho).parent.mkdir(parents=True, exist_ok=True)
+    Path(caminho).write_bytes(bytes(saida))
+
+
+def docx(caminho, paragrafos):
+    corpo = "".join(f"<w:p><w:r><w:t>{p}</w:t></w:r></w:p>" for p in paragrafos)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/'
+           f'wordprocessingml/2006/main"><w:body>{corpo}</w:body></w:document>')
+    Path(caminho).parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(caminho, "w") as z:
+        z.writestr("[Content_Types].xml", '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/'
+                   'package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/></Types>')
+        z.writestr("word/document.xml", xml)
+
+
+def meta(titulo, autor, ano, tipo, conf=0.9, doi=None, tags=("fascismo",)):
+    return (f"META|{json.dumps({'titulo': titulo, 'autor': autor, 'ano': ano, 'tipo': tipo, 'conf': conf, 'doi': doi, 'tags': list(tags)})}")
+
+
+def gerar_amostra(origem):
+    m_adorno = meta("Teoria freudiana e o padrão da propaganda fascista", "Theodor Adorno", "1951", "artigo",
+                    doi="10.1000/adorno.1951")
+    capa = "Revista de Estudos Críticos\nVolume 3"
+    artigo = [capa, "Resumo\n" + m_adorno + "\nO artigo discute a propaganda fascista. " + LONGO,
+              "Introdução\nA análise segue. " + LONGO]
+    pdf(origem / "artigos" / "Adorno_teoria.pdf", artigo)
+    (origem / "Downloads").mkdir(parents=True)
+    shutil.copy2(origem / "artigos" / "Adorno_teoria.pdf", origem / "Downloads" / "download (1).pdf")
+    pdf(origem / "Downloads" / "download.pdf", ["Baixado do portal X\n" + capa] + artigo[1:])
+    m_ms = meta("Plano nacional de saúde da mulher", "Ministério da Saúde", "2023", "politica",
+                tags=("saude", "politicas publicas", "genero"))
+    pdf(origem / "politicas" / "plano_ms.pdf",
+        ["Ministério da Saúde", "Resumo\n" + m_ms + "\nMetas para a saúde da mulher. " + LONGO,
+         "Capítulo 2\nPúblico-alvo e metas. " + LONGO, "Anexo\n" + LONGO])
+    m_fich = meta("Fichamento de Adorno sobre propaganda fascista", "Theodor Adorno", "1951", "fichamento")
+    docx(origem / "fichamentos" / "fichamento adorno.docx",
+         [m_fich, "Fichamento do texto de Adorno.",
+          "Para Adorno, o fascista é uma mistura de barbeiro de bairro e King Kong.", LONGO])
+    pdf(origem / "pessoal" / "RG_digitalizado.pdf", ["Documento de identidade"])
+    pdf(origem / "Downloads" / "scan_001.pdf", [""])
+    (origem / "notas.txt").write_text(
+        meta("Notas soltas de leitura", "Anônimo", None, "outro", conf=0.6, tags=()) + "\n" + LONGO, encoding="utf-8")
+    (origem / "Entrevistas").mkdir()
+    (origem / "Entrevistas" / "participante_03.txt").write_text("Transcrição com nome real.", encoding="utf-8")
+    (origem / "foto.jpg").write_bytes(b"nao e texto")
+
+
+# ---------- subagente simulado ----------
+
+def classificar_lote(lote):
+    saida = Path(str(lote).replace(".json", "_resposta.jsonl"))
+    linhas = []
+    for d in json.loads(Path(lote).read_text(encoding="utf-8")):
+        texto = " ".join(p["texto"] for p in d["paginas"])
+        achou = re.search(r"META\|(\{.*?\})", texto.replace("\n", " "))
+        m = json.loads(achou.group(1)) if achou else {"titulo": None, "autor": None, "ano": None,
+                                                      "tipo": "outro", "conf": 0.3, "doi": None, "tags": []}
+        sobrenome = (m["autor"] or "sd").split()[-1]
+        palavras = [w for w in (m["titulo"] or "sem titulo").split() if w.lower() not in ("o", "a", "de", "da", "e")][:6]
+        prefixo = "Fichamento_" if m["tipo"] == "fichamento" else ""
+        if m["tipo"] == "politica":
+            sobrenome = "MS"
+        linhas.append(json.dumps({
+            "id": d["id"], "tipo": m["tipo"], "titulo": m["titulo"], "autores": [m["autor"]], "ano": m["ano"],
+            "fonte": None, "doi": m["doi"], "idioma": "pt", "tags": m["tags"] + ["tag-inventada"],
+            "resumo": "Resumo simulado.", "sensivel": False, "confianca": m["conf"],
+            "nome_sugerido": f"{prefixo}{sobrenome}_{m['ano'] or 'sd'}_{'-'.join(palavras)}",
+            "motivo_baixa_confianca": None if m["conf"] >= 0.8 else "autor e ano incertos"}, ensure_ascii=False))
+    saida.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+    return saida
+
+
+# ---------- execução ----------
+
+def rodar(env, *args):
+    r = subprocess.run([sys.executable, str(SCRIPTS / args[0])] + list(args[1:]),
+                       env=env, capture_output=True, text=True)
+    if r.returncode != 0:
+        print(r.stdout, r.stderr)
+        raise SystemExit(f"FALHOU: {' '.join(args)}")
+    return r.stdout
+
+
+falhas = []
+
+
+def confere(cond, msg):
+    print(("  ok    " if cond else "  FALHA ") + msg)
+    if not cond:
+        falhas.append(msg)
+
+
+def main():
+    tmp = Path(tempfile.mkdtemp(prefix="teste_biblioteca_"))
+    origem, acervo = tmp / "Amostra", tmp / "Biblioteca"
+    origem.mkdir()
+    gerar_amostra(origem)
+    cfg = tmp / "config.json"
+    cfg.write_text(json.dumps({"origens": [str(origem)], "acervo": str(acervo),
+                               "indice": str(tmp / "biblioteca.db"), "lotes": str(tmp / "lotes")}))
+    env = dict(os.environ, BIBLIOTECA_CONFIG=str(cfg))
+    antes = sorted(str(p) for p in origem.rglob("*"))
+
+    print("1. Inventário")
+    out = rodar(env, "inventario.py")
+    confere("Arquivos novos no índice: 9" in out, "9 arquivos de texto entram no índice (a foto fica de fora)")
+    confere("duplicados idênticos: 1" in out, "1 duplicado idêntico")
+    confere("sensíveis pelo nome (texto não será lido): 2" in out, "2 sensíveis pelo nome ou pasta")
+
+    print("2. Texto")
+    out = rodar(env, "extrair_texto.py")
+    confere("com texto: 5" in out and "sem texto: 1" in out, "5 com texto, 1 escaneado sem texto")
+
+    print("3. Busca por trecho antes de classificar")
+    out = rodar(env, "buscar.py", "paginas", 'NEAR(barbeiro "king kong", 30)')
+    confere("fichamento adorno.docx" in out and "King Kong" in out, "acha o trecho do King Kong no fichamento")
+
+    print("4. Lotes e classificação")
+    out = rodar(env, "selecionar_paginas.py", "--lote", "10")
+    confere("Documentos para classificar: 5 em 1 lote(s)" in out, "5 documentos em 1 lote")
+    lote = json.loads((tmp / "lotes" / "lote_001.json").read_text(encoding="utf-8"))
+    artigo = next(d for d in lote if d["nome_original"] in ("Adorno_teoria.pdf", "download (1).pdf"))
+    confere(artigo["paginas"][0]["pagina"] == 2, "o seletor pula a capa e começa no Resumo")
+    resposta = classificar_lote(tmp / "lotes" / "lote_001.json")
+    out = rodar(env, "gravar_classificacao.py", str(resposta))
+    confere("Classificações gravadas: 5" in out, "5 classificações gravadas")
+    confere("tag-inventada" in out, "tag fora da lista é descartada com aviso")
+
+    print("5. Duplicados por conteúdo")
+    out = rodar(env, "duplicados_conteudo.py")
+    confere("Duplicatas por conteúdo: 1" in out, "o mesmo artigo de outra fonte vira duplicata pelo DOI")
+
+    print("6. Plano e cópia")
+    out = rodar(env, "aplicar.py", "--simular")
+    confere(not acervo.exists(), "a simulação não cria nada")
+    out = rodar(env, "aplicar.py")
+    nomes = sorted(str(p.relative_to(acervo)) for p in acervo.rglob("*") if p.is_file())
+    print("     acervo:", nomes)
+    confere(any(n.startswith("Artigos/Adorno_1951_") for n in nomes), "artigo vai para Artigos/ com o nome novo")
+    confere(any(n.startswith("Documentos-de-politica/MS_2023_") for n in nomes), "política vai para Documentos-de-politica/")
+    confere(any(n.startswith("Fichamentos/Fichamento_Adorno_1951") for n in nomes), "fichamento vai para Fichamentos/")
+    confere("_revisar/scan_001.pdf" in nomes, "escaneado vai para _revisar/ com o nome original")
+    confere(any(n.startswith("_revisar/Anonimo_sd_") for n in nomes), "confiança 0,6 vai para _revisar/ com o nome sugerido")
+    confere(len(nomes) == 5, "5 arquivos copiados (duplicatas e sensíveis ficam de fora)")
+    confere(sorted(str(p) for p in origem.rglob("*")) == antes, "a pasta de origem não mudou")
+
+    print("7. Busca por documento")
+    out = rodar(env, "buscar.py", "documentos", "propaganda fascista")
+    confere("Biblioteca/Artigos/" in out, "a busca devolve o caminho novo")
+    out = rodar(env, "buscar.py", "documentos", "saude", "--tipo", "politica")
+    confere("Plano nacional" in out, "filtro por tipo funciona, sem diferença de acento")
+
+    print("8. Desfazer")
+    rodar(env, "desfazer.py")
+    restantes = [p for p in acervo.rglob("*") if p.is_file() and "_desfeitos" not in str(p)]
+    confere(not restantes, "as cópias vão para _revisar/_desfeitos/")
+    rodar(env, "aplicar.py")
+    confere((acervo / "Artigos").exists(), "aplicar de novo funciona depois de desfazer")
+
+    print("9. Rotina de entrada")
+    (acervo / "_entrada").mkdir(exist_ok=True)
+    pdf(acervo / "_entrada" / "artigo_novo.pdf",
+        ["Capa", "Resumo\n" + meta("Empresários e democracia no Brasil", "Ana Souza", "2020", "artigo",
+                                    tags=("empresariado", "democracia")) + "\n" + LONGO])
+    shutil.copy2(origem / "politicas" / "plano_ms.pdf", acervo / "_entrada" / "copia do plano.pdf")
+    rodar(env, "inventario.py", "--entrada")
+    rodar(env, "extrair_texto.py")
+    rodar(env, "selecionar_paginas.py")
+    resposta = classificar_lote(tmp / "lotes" / "lote_002.json")
+    rodar(env, "gravar_classificacao.py", str(resposta))
+    rodar(env, "aplicar.py", "--entrada")
+    confere(any(p.name.startswith("Souza_2020_") for p in (acervo / "Artigos").iterdir()), "artigo novo entra em Artigos/")
+    confere((acervo / "_revisar" / "copia do plano.pdf").exists(), "cópia de um documento que já existe vai para _revisar/")
+    confere(not any((acervo / "_entrada").iterdir()), "_entrada/ fica vazia")
+
+    print("10. Estado")
+    out = rodar(env, "estado.py")
+    confere("Sensíveis (texto fora do índice):" in out and "participante_03" in out, "estado lista os sensíveis")
+
+    print()
+    if falhas:
+        print(f"{len(falhas)} falha(s). Pasta do teste: {tmp}")
+        sys.exit(1)
+    shutil.rmtree(tmp)
+    print("Tudo certo.")
+
+
+if __name__ == "__main__":
+    main()

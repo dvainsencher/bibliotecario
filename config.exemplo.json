@@ -1,0 +1,6 @@
+{
+  "origens": ["~/Documents/Amostra"],
+  "acervo": "~/Documents/Biblioteca",
+  "indice": "indice/biblioteca.db",
+  "lotes": "indice/lotes"
+}
