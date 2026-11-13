@@ -1,6 +1,6 @@
 # Gabarito da amostra
 
-`exemplo/` é uma pasta bagunçada de propósito, para treinar sem usar os seus arquivos. São 191 arquivos: artigos, fichamento, notícias, receitas, imagens, planilhas, documentos pessoais falsos, duplicados e lixo, espalhados por pastas com nomes que não ajudam. A origem de cada arquivo está em [FONTES.md](FONTES.md).
+`exemplo/` é uma pasta bagunçada de propósito, para treinar sem usar os seus arquivos. São 191 arquivos: artigos, fichamento, notícias, receitas, imagens, planilhas, documentos pessoais falsos, duplicados e lixo, espalhados por pastas com nomes que não ajudam. A origem de cada arquivo está em [FONTES.md](FONTES.md). Este gabarito fica fora de `exemplo/` para não entrar na indexação: senão, a busca acharia as respostas aqui.
 
 Não ponha arquivos seus nesta pasta. Ela vai para o git. Os seus ficam em outra pasta de origem, indicada no `config.json`.
 
