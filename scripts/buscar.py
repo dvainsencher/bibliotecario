@@ -14,7 +14,7 @@ import re
 import sqlite3
 import sys
 
-from comum import carregar_config, conectar, contar_vazias, descrever_local, numero_da_linha
+from comum import carregar_config, conectar, contar_vazias, descrever_local, normalizar, numero_da_linha
 
 
 def opcao(nome, padrao=None):
@@ -51,8 +51,7 @@ def main():
                       f" | {r['tipo'] or '?'}{dup}\n     {r['caminho']}\n     {r['trecho']}")
         else:
             sql = """SELECT d.id, d.titulo, d.caminho, d.extensao, d.paginado, p.pagina, p.linha_inicial, p.texto,
-                            snippet(paginas_fts, 0, '[', ']', ' ... ', 30) AS trecho,
-                            snippet(paginas_fts, 0, char(2), char(3), '', 64) AS marcado
+                            snippet(paginas_fts, 0, char(2), char(3), ' ... ', 30) AS marcado
                      FROM paginas_fts JOIN paginas p ON p.id = paginas_fts.rowid
                      JOIN documentos d ON d.id = p.documento_id
                      WHERE paginas_fts MATCH ? AND d.sensivel = 0 AND d.situacao != 'duplicata'"""
@@ -63,12 +62,19 @@ def main():
             sql += " ORDER BY bm25(paginas_fts) LIMIT ?"
             linhas = con.execute(sql, params + [limite]).fetchall()
             for r in linhas:
-                # O primeiro termo que casou indica a linha (ou o parágrafo) dentro da página
-                termo = re.search("\x02(.*?)\x03", r["marcado"] or "")
-                n = numero_da_linha(r["texto"] or "", termo.group(1), contar_vazias(r["extensao"])) if termo else None
+                marcado = r["marcado"] or ""
+                trecho = marcado.replace("\x02", "[").replace("\x03", "]")
+                # O primeiro termo destacado no trecho, com as palavras que vêm antes dele,
+                # indica a linha (ou o parágrafo) dentro da página
+                termo = re.search("\x02(.*?)\x03", marcado, re.S)
+                n = None
+                if termo:
+                    antes = normalizar(marcado[:termo.start()].replace("\x03", " ")).split()[-3:]
+                    n = numero_da_linha(r["texto"] or "", termo.group(1), contar_vazias(r["extensao"]),
+                                        antes=" ".join(antes))
                 local = descrever_local(r["extensao"], r["paginado"], r["pagina"], r["linha_inicial"], n)
                 print(f"[{r['id']}] {r['titulo'] or '(sem título)'} | {local}\n"
-                      f"     {r['caminho']}\n     {' '.join(r['trecho'].split())}\n"
+                      f"     {r['caminho']}\n     {' '.join(trecho.split())}\n"
                       f"     mais contexto: python3 scripts/ler_paginas.py {r['id']} {r['pagina']}")
     except sqlite3.OperationalError as e:
         sys.exit(f"Consulta inválida ({e}). Use aspas para frases e evite caracteres como : ( ) soltos.")

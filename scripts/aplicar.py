@@ -100,7 +100,7 @@ def main():
 def principal_de(d, todos):
     """Segue duplicata_de até o documento que não é duplicata (um duplicado pode apontar para outro)."""
     vistos = set()
-    while d["situacao"] == "duplicata" and d["duplicata_de"] in todos and d["id"] not in vistos:
+    while d["situacao"] == "duplicata" and d["duplicata_de"] in todos and d["duplicata_de"] not in vistos:
         vistos.add(d["id"])
         d = todos[d["duplicata_de"]]
     return d
@@ -122,17 +122,28 @@ def relatorio(plano, destinos, pulados, sensiveis, todos, acervo, entrada, feito
     print(f"{'Feito' if feito else 'Plano'} ({len(plano)} arquivo(s) {'' if feito else 'para '}{verbo}):")
     for d, _, _, motivo in plano:
         extra = f"  [{motivo}]" if motivo else ""
-        conf = f"  (confiança {d['confianca']:.2f})" if d["confianca"] is not None else ""
+        # Sem motivo próprio, o motivo de ir para _revisar/ já é a confiança: não repete
+        mostra_conf = d["confianca"] is not None and not (motivo or "").startswith("confiança")
+        conf = f"  (confiança {d['confianca']:.2f})" if mostra_conf else ""
         print(f"  {d['nome_original']}  ->  {destinos[d['id']].relative_to(acervo)}{conf}{extra}")
     duplicados = pulados + [d for d, _, _, _ in plano if d["situacao"] == "duplicata"]
     if duplicados:
-        print(f"Duplicados ({len(duplicados)}): só uma cópia de cada documento entra no acervo.")
+        if entrada:
+            print(f"Duplicados ({len(duplicados)}): o documento já está no acervo; a cópia nova vai para "
+                  "_revisar/ para você decidir.")
+        else:
+            print(f"Duplicados ({len(duplicados)}): só uma cópia de cada documento entra no acervo.")
+        ids_pulados = {d["id"] for d in pulados}
         for d in duplicados:
             p = principal_de(d, todos)
-            if d in pulados:
+            if d["id"] in ids_pulados:
                 fica = f"Esta cópia fica só na origem: {d['caminho']}"
             else:
                 fica = f"Esta cópia {'foi' if feito else 'vai'} para _revisar/."
+            if p["id"] == d["id"]:
+                print(f"  {d['nome_original']} está marcado como duplicata, mas o original não está mais no "
+                      f"índice. {fica}")
+                continue
             print(f"  {d['nome_original']} é cópia de {p['nome_original']} ({d['motivo']}), "
                   f"{onde_esta(p, destinos, acervo, feito)}. {fica}")
     if sensiveis:

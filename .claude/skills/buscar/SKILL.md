@@ -25,6 +25,7 @@ Como buscar
 Como responder
 - Português, frases curtas.
 - Para cada resultado: título, autor, ano, caminho, o local exatamente como a busca mostrou (página e linha, página e parágrafo, parágrafo ou linha) e o trecho literal. Não invente página para arquivo que não tem. Até 5 resultados, do mais relevante ao menos, com uma frase sobre por que casou.
+- No .docx, a página é a que o Word mostrou da última vez que o arquivo foi aberto e salvo. Se a pessoa disser que não bate, explique isso.
 - Se não achou, diga. Nunca invente caminho, título, página ou trecho. Sugira outra busca em uma linha.
 - Se houver duplicatas, mostre o arquivo principal e diga que há cópias.
 

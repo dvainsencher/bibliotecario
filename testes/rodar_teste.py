@@ -62,18 +62,21 @@ def pdf(caminho, paginas):
 
 
 PAGINA = "<<nova pagina>>"  # na lista de parágrafos do docx: o próximo parágrafo começa uma página
+MANUAL = "<<quebra manual>>"  # quebra de página que a pessoa inseriu (Ctrl+Enter)
 
 
 def docx(caminho, paragrafos, paginas_app=None):
     """.docx mínimo. PAGINA na lista grava a marca que o Word deixa onde a página começou."""
-    corpo, quebra = "", False
+    corpo, marca = "", ""
     for p in paragrafos:
         if p == PAGINA:
-            quebra = True
+            marca += "<w:lastRenderedPageBreak/>"
             continue
-        marca = "<w:lastRenderedPageBreak/>" if quebra else ""
+        if p == MANUAL:
+            marca += '<w:br w:type="page"/>'
+            continue
         corpo += f'<w:p w:rsidR="00A1"><w:pPr><w:jc w:val="both"/></w:pPr><w:r>{marca}<w:t xml:space="preserve">{p}</w:t></w:r></w:p>'
-        quebra = False
+        marca = ""
     xml = ('<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/'
            f'wordprocessingml/2006/main"><w:body>{corpo}</w:body></w:document>')
     Path(caminho).parent.mkdir(parents=True, exist_ok=True)
@@ -255,11 +258,19 @@ def main():
         ["Capa", "Resumo\n" + meta("Empresários e democracia no Brasil", "Ana Souza", "2020", "artigo",
                                     tags=("empresariado", "democracia")) + "\n" + LONGO])
     shutil.copy2(origem / "politicas" / "plano_ms.pdf", acervo / "_entrada" / "copia do plano.pdf")
+    docx(acervo / "_entrada" / "nota do google docs.docx",
+         [meta("Nota sem paginas", "Ana Souza", "2021", "outro"), "Um.", "Aqui esta a palavra ornitorrinco.", LONGO])
     rodar(env, "inventario.py", "--entrada")
     rodar(env, "extrair_texto.py")
     rodar(env, "selecionar_paginas.py")
     resposta = classificar_lote(tmp / "lotes" / "lote_002.json")
     rodar(env, "gravar_classificacao.py", str(resposta))
+    out = rodar(env, "buscar.py", "paginas", "ornitorrinco")
+    confere("parágrafo 3" in out and "página" not in out, "docx sem marcas do Word indica só o parágrafo")
+    achou = re.search(r"ler_paginas\.py (\d+) (\d+)", out)
+    if achou:
+        out = rodar(env, "ler_paginas.py", achou.group(1), achou.group(2))
+        confere("--- parágrafos 1 a 4 ---" in out, "ler_paginas diz que parágrafos o bloco cobre")
     rodar(env, "aplicar.py", "--entrada")
     confere(any(p.name.startswith("Souza_2020_") for p in (acervo / "Artigos").iterdir()), "artigo novo entra em Artigos/")
     confere((acervo / "_revisar" / "copia do plano.pdf").exists(), "cópia de um documento que já existe vai para _revisar/")
@@ -275,6 +286,13 @@ def main():
     out = rodar(env, "inventario.py")
     confere("Caminhos no índice que não existem mais: 1" in out and artigo_novo.name in out,
             "o inventário lista caminhos que sumiram")
+    out = rodar(env, "inventario.py", str(acervo))
+    confere("Reencontrados em outro lugar: 1" in out and "Arquivos novos no índice: 0" in out,
+            "reescanear o acervo acha o arquivo renomeado, sem criar duplicata")
+    out = rodar(env, "buscar.py", "documentos", "empresarios")
+    confere("renomeado_a_mao.pdf" in out, "a busca devolve o caminho novo do arquivo renomeado")
+    out = rodar(env, "inventario.py")
+    confere("não existem mais" not in out, "nenhum caminho sumido depois de reencontrar")
 
     print("12. Funções de apoio")
     sys.path.insert(0, str(SCRIPTS))
@@ -289,6 +307,22 @@ def main():
     uma = tmp / "uma_pagina.docx"
     docx(uma, ["Um.", "Dois."], paginas_app=1)
     confere(comum.paginas_do_arquivo(uma)[1], "docx de uma página salvo pelo Word conta como paginado")
+    manual = tmp / "manual.docx"
+    docx(manual, ["Um.", MANUAL, "Dois."])
+    confere(comum.paginas_docx(manual) == ([["Um."], ["Dois."]], True), "quebra manual de página conta")
+    ambas = tmp / "ambas.docx"
+    docx(ambas, ["Um.", MANUAL, PAGINA, "Dois."])
+    confere(comum.paginas_docx(ambas)[0] == [["Um."], ["Dois."]], "quebra manual e marca do Word não contam duas vezes")
+    branca = tmp / "branca.docx"
+    docx(branca, ["Um.", PAGINA, "", PAGINA, "Tres."])
+    confere(comum.paginas_docx(branca)[0] == [["Um."], [], ["Tres."]], "página sem texto não some da contagem")
+    txt = tmp / "com_quebra.txt"
+    txt.write_text("um\fainda um\ndois\r\ntres", encoding="utf-8")
+    texto, inicio = comum.paginas_do_arquivo(txt)[0][0]
+    confere(comum.numero_da_linha(texto, "tres", True) == 3, "no .txt, a numeração de linhas é a do editor")
+    pagina = "o fascismo aparece aqui\noutra linha\nmas o fascismo de verdade"
+    confere(comum.numero_da_linha(pagina, "fascismo", False, antes="mas o") == 3,
+            "a linha é a da ocorrência mostrada no trecho, não a primeira da página")
 
     print()
     if falhas:

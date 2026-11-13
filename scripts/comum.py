@@ -131,7 +131,10 @@ def paginas_do_arquivo(caminho):
         if paginado:
             return [("\n".join(p), 1) for p in paginas], True
         return agrupar([par for p in paginas for par in p], contar_vazias=False), False
-    linhas = Path(caminho).read_text(encoding="utf-8", errors="replace").splitlines()
+    texto = Path(caminho).read_text(encoding="utf-8", errors="replace")
+    # split("\n") e não splitlines(): splitlines também quebra em \f e outros, e a contagem
+    # deixaria de bater com a numeração de linhas do editor
+    linhas = texto.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     return agrupar(linhas, contar_vazias=True), False
 
 
@@ -153,10 +156,9 @@ def agrupar(linhas, contar_vazias):
     return blocos or [("", 1)]
 
 
-MARCA_PAGINA = re.compile(r'<w:lastRenderedPageBreak/>|<w:br\b[^>]*w:type="page"[^>]*/>')
-PECA_DOCX = re.compile(
-    r'(<w:p[\s>])|(</w:p>)|(<w:lastRenderedPageBreak/>|<w:br\b[^>]*w:type="page"[^>]*/>)'
-    r'|(<w:tab/>)|<w:t(?:\s[^>]*)?>([^<]*)</w:t>')
+MARCA_WORD = "<w:lastRenderedPageBreak/>"
+QUEBRA_MANUAL = r'<w:br\b[^>]*w:type="page"[^>]*/>'
+PECA_DOCX = r'(<w:p[\s>])|(</w:p>)|({quebra})|(<w:tab/>)|<w:t(?:\s[^>]*)?>([^<]*)</w:t>'
 ENTIDADES = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"), ("&amp;", "&"))
 
 
@@ -165,9 +167,13 @@ def paginas_docx(caminho):
 
     Devolve (paginas, paginado): paginas é uma lista de páginas, cada uma uma lista de parágrafos
     não vazios. O Word grava <w:lastRenderedPageBreak/> onde cada página começava da última vez que
-    o arquivo foi aberto; as quebras manuais ficam como <w:br w:type="page"/>. Sem essas marcas não
-    há como saber a página, e o documento todo fica numa página só, com paginado False, a não ser
-    que o próprio Word diga (em docProps/app.xml) que o documento tem uma página.
+    o arquivo foi aberto, inclusive depois das quebras manuais. Por isso, quando há marcas do Word,
+    só elas contam; as quebras manuais (<w:br w:type="page"/>) só contam num arquivo sem nenhuma
+    marca do Word. Página sem texto (só imagem, ou em branco) continua contando, para a numeração
+    bater com a do Word. Um parágrafo que atravessa a página vira dois: o fim dele é o primeiro
+    parágrafo da página seguinte, como a pessoa conta olhando a página.
+    Sem marca nenhuma não há como saber a página: o documento todo fica numa página só, com
+    paginado False, a não ser que o próprio Word diga (em docProps/app.xml) que ele tem uma página.
     """
     try:
         with zipfile.ZipFile(caminho) as z:
@@ -189,14 +195,14 @@ def paginas_docx(caminho):
             paginas[-1].append(texto)
         atual = ""
 
-    for m in PECA_DOCX.finditer(xml):
-        abre, fecha, quebra, tab, texto = m.groups()
+    quebra = re.escape(MARCA_WORD) if MARCA_WORD in xml else QUEBRA_MANUAL
+    for m in re.finditer(PECA_DOCX.format(quebra=quebra), xml):
+        abre, fecha, nova_pagina, tab, texto = m.groups()
         if abre or fecha:
             fecha_paragrafo()
-        elif quebra:
+        elif nova_pagina:
             fecha_paragrafo()
-            if paginas[-1]:
-                paginas.append([])
+            paginas.append([])
         elif tab:
             atual += " "
         elif texto is not None:
@@ -209,18 +215,27 @@ def paginas_docx(caminho):
     return paginas, paginado
 
 
-def numero_da_linha(texto, termo, contar_vazias):
-    """Posição (a partir de 1) da primeira linha do texto que contém o termo, ou None."""
-    alvo = " " + normalizar(termo) + " "
-    if not alvo.strip():
+def numero_da_linha(texto, termo, contar_vazias, antes=""):
+    """Posição (a partir de 1) da linha onde está o termo, ou None.
+
+    `antes` são as palavras que vêm logo antes do termo no trecho mostrado pela busca. Com elas,
+    a linha é a da ocorrência mostrada, mesmo que a frase quebre de linha, e não a primeira
+    ocorrência da palavra na página. Se o contexto não for achado, vale a primeira ocorrência.
+    """
+    termo = normalizar(termo)
+    if not termo:
         return None
-    n = 0
-    for linha in texto.split("\n"):
-        if not contar_vazias and not linha.strip():
-            continue
-        n += 1
-        if alvo in " " + normalizar(linha) + " ":
-            return n
+    contadas = [l for l in texto.split("\n") if contar_vazias or l.strip()]
+    # Texto corrido da página, guardando onde cada linha começa
+    corrido, inicios = " ", []
+    for linha in contadas:
+        inicios.append(len(corrido))
+        corrido += normalizar(linha) + " "
+    for alvo in (normalizar(antes + " " + termo), termo):
+        pos = corrido.find(" " + alvo + " ")
+        if pos >= 0:
+            pos += len(alvo) - len(termo) + 1  # onde começa o termo
+            return max(i for i, ini in enumerate(inicios, start=1) if ini <= pos)
     return None
 
 

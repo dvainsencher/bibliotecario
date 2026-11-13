@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS documentos (
   indexado_em      TEXT
 );
 CREATE INDEX IF NOT EXISTS documentos_sha ON documentos(sha256);
+CREATE INDEX IF NOT EXISTS documentos_origem ON documentos(caminho_origem);
 
 CREATE TABLE IF NOT EXISTS paginas (
   id           INTEGER PRIMARY KEY,
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS movimentos (
   sha256       TEXT NOT NULL,
   origem       TEXT NOT NULL,
   destino      TEXT NOT NULL,
-  operacao     TEXT NOT NULL,            -- copia, move, desfaz
+  operacao     TEXT NOT NULL,            -- copia, move, desfaz, reencontrado
   motivo       TEXT,
   feito_em     TEXT NOT NULL             -- igual para todas as linhas de uma mesma rodada
 );
