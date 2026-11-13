@@ -5,7 +5,7 @@ Uso:
   python3 scripts/buscar.py paginas "consulta" [--doc ID] [--limite N]
 
 Sintaxe da consulta (FTS5): palavras soltas (todas precisam aparecer), "frase exata", OR,
-NEAR(palavra1 palavra2, 10), prefixo com asterisco (fascis*). Acentos não importam.
+NEAR(palavra1 palavra2, 10), prefixo com asterisco (democra*). Acentos não importam.
 
 No modo paginas, cada resultado diz onde está o trecho: página e linha no PDF, página e parágrafo
 no .docx salvo pelo Word, só o parágrafo no .docx sem marcas de página, só a linha no .txt e no .md.

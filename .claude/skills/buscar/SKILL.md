@@ -15,12 +15,12 @@ Ferramentas
   "linha 120" (.txt e .md). Cada resultado traz a linha "mais contexto" com o comando para ler aquele trecho.
 - python3 scripts/ler_paginas.py ID INICIO FIM
   devolve o texto dessas páginas ou blocos (no máximo 3). Use os números da linha "mais contexto".
-As consultas usam a sintaxe FTS5: palavras soltas, "frase exata", OR, NEAR(palavra1 palavra2, 10) e prefixo com asterisco (fascis*). Acentos não importam.
+As consultas usam a sintaxe FTS5: palavras soltas, "frase exata", OR, NEAR(palavra1 palavra2, 10) e prefixo com asterisco (democra*). Acentos não importam.
 
 Como buscar
 1. Entenda o pedido: um arquivo, um conjunto de arquivos ou um trecho.
 2. Arquivo ou tema: comece por documentos. Trecho ou frase lembrada: comece por paginas.
-3. Gere variações: sinônimos, singular e plural, português e inglês, partes da frase com NEAR. Exemplo: para "o fascista é uma mistura de barbeiro de bairro e King Kong", tente NEAR(barbeiro "king kong", 30), depois "king kong", depois barbeiro AND fascis*.
+3. Gere variações: sinônimos, singular e plural, português e inglês, partes da frase com NEAR. Exemplo: para "as elites achavam que o Brasil era uma nação sem povo", tente NEAR(nação povo, 5), depois "sem povo", depois elite* AND nação.
 4. No máximo 4 buscas por pergunta. Se não achar, diga o que tentou.
 5. Para responder sobre o conteúdo, leia só as páginas devolvidas. Use ler_paginas.py para ver mais contexto, no máximo 3 páginas por documento. Nunca abra o PDF.
 
