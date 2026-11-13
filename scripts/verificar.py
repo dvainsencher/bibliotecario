@@ -11,20 +11,21 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from comum import RAIZ, achar_pdftotext, ler_tags
+# Antes de importar o resto: num Python antigo, a mensagem sai clara em vez de um erro de sintaxe
+if sys.version_info < (3, 9):
+    print("Bibliotecário: este Python é antigo demais (precisa do 3.9 ou mais novo). "
+          "No Mac, rode no Terminal: xcode-select --install. Depois peça: use a skill preparar.")
+    sys.exit(1)
+
+from comum import RAIZ, achar_pdftotext, arquivo_tags, ler_tags  # noqa: E402
 
 OK, AVISO, FALTA = "ok", "aviso", "falta"
 
 
 def checar():
     """Devolve a lista de (estado, item, o que fazer)."""
-    itens = []
     versao = sys.version_info
-    if versao >= (3, 9):
-        itens.append((OK, f"Python {versao.major}.{versao.minor}", ""))
-    else:
-        itens.append((FALTA, f"Python {versao.major}.{versao.minor}",
-                      "é preciso o Python 3.9 ou mais novo: rode xcode-select --install no Terminal"))
+    itens = [(OK, f"Python {versao.major}.{versao.minor}", "")]
 
     if achar_pdftotext():
         itens.append((OK, "pdftotext", ""))
@@ -41,31 +42,47 @@ def checar():
     if not config.exists():
         itens.append((FALTA, "config.json", "copie config.exemplo.json para config.json e ajuste os caminhos"))
     else:
-        try:
-            cfg = json.loads(config.read_text(encoding="utf-8"))
-            itens.append((OK, "config.json", ""))
-            for origem in cfg.get("origens", []):
-                if Path(origem).expanduser().is_dir():
-                    itens.append((OK, f"pasta de origem {origem}", ""))
-                else:
-                    itens.append((FALTA, f"pasta de origem {origem}", "a pasta não existe: corrija o caminho em config.json"))
-        except (json.JSONDecodeError, AttributeError):
-            itens.append((FALTA, "config.json", "o arquivo não é um JSON válido: compare com config.exemplo.json"))
+        itens += checar_config(config)
 
-    tags_md = RAIZ / ".claude" / "skills" / "organizar" / "tags.md"
-    if "Lista de exemplo" in tags_md.read_text(encoding="utf-8"):
+    tags_md = arquivo_tags()
+    if not tags_md.exists():
+        itens.append((FALTA, "tags.md", "lista de tags não encontrada: recupere com git checkout .claude/skills/organizar/tags.md"))
+    elif "Lista de exemplo" in tags_md.read_text(encoding="utf-8", errors="replace"):
         itens.append((AVISO, "tags de exemplo", "escreva as tags da sua pesquisa em .claude/skills/organizar/tags.md"))
     else:
         n = len(ler_tags())
         estado = OK if 15 <= n <= 30 else AVISO
         itens.append((estado, f"{n} tags", "" if estado == OK else "o ideal é ter de 15 a 30 tags"))
 
-    if "SEU NOME" in (RAIZ / "CLAUDE.md").read_text(encoding="utf-8"):
+    claude_md = RAIZ / "CLAUDE.md"
+    if claude_md.exists() and "SEU NOME" in claude_md.read_text(encoding="utf-8", errors="replace"):
         itens.append((AVISO, "nome no CLAUDE.md", "troque SEU NOME pelo seu nome no CLAUDE.md"))
 
+    # Hoje o projeto só usa a biblioteca padrão. Se um dia houver requirements.txt, ele pede o venv.
     requisitos = RAIZ / "requirements.txt"
     if requisitos.exists() and not (RAIZ / ".venv").is_dir():
         itens.append((FALTA, "bibliotecas Python", "rode: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt"))
+    return itens
+
+
+def checar_config(config):
+    """Itens sobre o config.json: formato e pastas de origem."""
+    formato = "o formato de config.json não está certo: compare com config.exemplo.json"
+    try:
+        cfg = json.loads(config.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return [(FALTA, "config.json", formato)]
+    if not isinstance(cfg, dict):
+        return [(FALTA, "config.json", formato)]
+    origens = cfg.get("origens", [])
+    if not isinstance(origens, list) or not all(isinstance(o, str) for o in origens):
+        return [(FALTA, "config.json", 'origens precisa ser uma lista de pastas, como ["~/Documents/Amostra"]')]
+    itens = [(OK, "config.json", "")]
+    for origem in origens:
+        if Path(origem).expanduser().is_dir():
+            itens.append((OK, f"pasta de origem {origem}", ""))
+        else:
+            itens.append((FALTA, f"pasta de origem {origem}", "a pasta não existe: corrija o caminho em config.json"))
     return itens
 
 
