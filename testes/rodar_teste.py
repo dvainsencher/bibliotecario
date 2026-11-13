@@ -11,6 +11,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import zipfile
 from pathlib import Path
 
@@ -311,7 +312,14 @@ def main():
 
     print("11. Arquivo que mudou de lugar fora do bibliotecário")
     artigo_novo = next((acervo / "Artigos").glob("Souza_2020_*"))
+    curto = [sys.executable, str(SCRIPTS / "verificar.py"), "--curto"]
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere("acervo alterado" not in r.stdout, "acervo em dia: a verificação não avisa nada sobre ele")
     artigo_novo.rename(artigo_novo.with_name("renomeado_a_mao.pdf"))
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere(r.returncode == 0 and "acervo alterado fora do bibliotecário" in r.stdout
+            and "skill organizar" in r.stdout and not r.stderr,
+            "arquivo renomeado à mão no acervo: a verificação avisa e sugere a skill organizar, sem bloquear")
     out = rodar(env, "inventario.py")
     confere("Caminhos no índice que não existem mais: 1" in out and artigo_novo.name in out,
             "o inventário lista caminhos que sumiram")
@@ -322,6 +330,34 @@ def main():
     confere("renomeado_a_mao.pdf" in out, "a busca devolve o caminho novo do arquivo renomeado")
     out = rodar(env, "inventario.py")
     confere("não existem mais" not in out, "nenhum caminho sumido depois de reencontrar")
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere("acervo alterado" not in r.stdout, "depois de reencontrar, o aviso some")
+    solto = acervo / "Artigos" / "posto_a_mao.pdf"
+    pdf(solto, ["Capa", "Texto colocado direto na pasta, sem passar pela entrada."])
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere("acervo alterado fora do bibliotecário" in r.stdout and "1 arquivo(s) sem registro" in r.stdout,
+            "arquivo posto à mão numa pasta do acervo gera aviso")
+    solto.rename(acervo / "_entrada" / solto.name)
+    (acervo / ".DS_Store").write_bytes(b"\0")
+    (acervo / "Artigos" / "planilha.xlsx").write_bytes(b"\0")
+    (acervo / "Thumbs.db").write_bytes(b"\0")
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere("acervo alterado" not in r.stdout,
+            "arquivo em _entrada/, arquivo oculto e tipo que o inventário não indexa não geram aviso")
+    nfc = unicodedata.normalize("NFC", "Gênero")
+    acentuado = acervo / "Artigos" / f"{nfc}.pdf"
+    pdf(acentuado, ["Capa", "Texto sobre genero e politica publica para o teste de acento."])
+    rodar(env, "inventario.py", str(acervo))
+    acentuado.rename(acervo / "Artigos" / f"{unicodedata.normalize('NFD', nfc)}.pdf")
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere("acervo alterado" not in r.stdout, "nome com acento em NFD no disco e NFC no índice não gera aviso (Mac)")
+    with sqlite3.connect(str(tmp / "biblioteca.db")) as con:
+        con.execute("ALTER TABLE documentos RENAME TO documentos_velha")
+    r = subprocess.run(curto, env=env, capture_output=True, text=True)
+    confere(r.returncode == 0 and "não consegui conferir o acervo" in r.stdout and not r.stderr,
+            "índice sem a tabela documentos: a verificação avisa em vez de calar, sem erro de Python")
+    with sqlite3.connect(str(tmp / "biblioteca.db")) as con:
+        con.execute("ALTER TABLE documentos_velha RENAME TO documentos")
 
     print("12. Funções de apoio")
     sys.path.insert(0, str(SCRIPTS))
