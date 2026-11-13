@@ -174,8 +174,37 @@ def main():
     cfg = tmp / "config.json"
     cfg.write_text(json.dumps({"origens": [str(origem)], "acervo": str(acervo),
                                "indice": str(tmp / "biblioteca.db"), "lotes": str(tmp / "lotes")}))
-    env = dict(os.environ, BIBLIOTECA_CONFIG=str(cfg))
+    # O teste usa a lista de tags de exemplo, para não depender das tags que você escreveu
+    tags = tmp / "tags.md"
+    tags.write_text("Lista de exemplo: apague esta linha quando escrever as suas tags.\n" + "".join(
+        f"- {t}\n" for t in ("metodologia", "politicas publicas", "saude", "genero", "estado", "empresariado",
+                              "fascismo", "democracia")), encoding="utf-8")
+    env = dict(os.environ, BIBLIOTECA_CONFIG=str(cfg), BIBLIOTECA_TAGS=str(tags))
     antes = sorted(str(p) for p in origem.rglob("*"))
+
+    print("0. Verificação do ambiente")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py")], env=env, capture_output=True, text=True)
+    confere(r.returncode == 0 and re.search(r"^\s*ok\s+pdftotext", r.stdout, re.M)
+            and re.search(r"^\s*ok\s+busca textual", r.stdout, re.M),
+            "a verificação passa com pdftotext, FTS5 e config.json")
+    confere("tags de exemplo" in r.stdout, "a verificação avisa que as tags ainda são as de exemplo")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), "--curto"],
+                       env=dict(env, BIBLIOTECA_CONFIG=str(tmp / "nao_existe.json")), capture_output=True, text=True)
+    confere(r.returncode == 1 and "config.json" in r.stdout and "skill preparar" in r.stdout,
+            "sem config.json, a verificação curta falha e indica a skill preparar")
+    ruim = tmp / "config_ruim.json"
+    for conteudo, esperado in (('{"origens": "~/uma/pasta"}', "origens precisa ser uma lista"),
+                               ("[1, 2]", "formato de config.json"),
+                               ('{"origens": ["/nao/existe/mesmo"]}', "a pasta não existe"),
+                               ("{ruim", "formato de config.json")):
+        ruim.write_text(conteudo, encoding="utf-8")
+        r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py"), "--curto"],
+                           env=dict(env, BIBLIOTECA_CONFIG=str(ruim)), capture_output=True, text=True)
+        confere(r.returncode == 1 and not r.stderr and esperado in r.stdout,
+                f"config.json com problema ({conteudo}) vira 'falta', sem erro de Python")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py")],
+                       env=dict(env, BIBLIOTECA_TAGS=str(tmp / "sumiu.md")), capture_output=True, text=True)
+    confere(not r.stderr and "lista de tags não encontrada" in r.stdout, "tags.md apagado vira 'falta', sem erro de Python")
 
     print("1. Inventário")
     out = rodar(env, "inventario.py")

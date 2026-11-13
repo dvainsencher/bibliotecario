@@ -10,6 +10,8 @@ Regras que valem sempre
 - Antes de copiar ou mover, rode o aplicar.py com --simular, mostre o plano e espere eu dizer "pode aplicar".
 - Documentos sensíveis ficam fora: não leia, não classifique, só liste.
 
+Antes de tudo: rode python3 scripts/verificar.py --curto. Se aparecer algo com "falta", pare e use a skill preparar.
+
 Modo lote (acervo existente)
 1. python3 scripts/inventario.py
 2. python3 scripts/extrair_texto.py
