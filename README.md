@@ -31,3 +31,7 @@ macOS ou Linux, Python 3.9 ou mais novo, `pdftotext` (no Mac: `brew install popp
 ## Testar
 
 `python3 testes/rodar_teste.py` cria uma amostra falsa numa pasta temporária, roda o fluxo inteiro e confere o resultado. Não toca nos seus arquivos.
+
+## Licença
+
+MIT (veja o arquivo LICENSE). Pode usar, copiar e adaptar, mantendo o aviso de licença.
