@@ -1,6 +1,6 @@
 # Gabarito da amostra
 
-`exemplo/` é uma pasta bagunçada de propósito, para treinar sem usar os seus arquivos. São 191 arquivos: artigos, fichamento, notícias, receitas, imagens, planilhas, documentos pessoais falsos, duplicados e lixo, espalhados por pastas com nomes que não ajudam. A origem de cada arquivo está em [FONTES.md](FONTES.md). Este gabarito fica fora de `exemplo/` para não entrar na indexação: senão, a busca acharia as respostas aqui.
+`exemplo/` é uma pasta bagunçada de propósito, para treinar sem usar os seus arquivos. São 192 arquivos: artigos, fichamento, notícias, receitas, imagens, planilhas, documentos pessoais falsos, duplicados e lixo, espalhados por pastas com nomes que não ajudam. A origem de cada arquivo está em [FONTES.md](FONTES.md). Este gabarito fica fora de `exemplo/` para não entrar na indexação: senão, a busca acharia as respostas aqui.
 
 Não ponha arquivos seus nesta pasta. Ela vai para o git. Os seus ficam em outra pasta de origem, indicada no `config.json`.
 
@@ -11,6 +11,7 @@ Use estas buscas para saber se a sua solução funciona. Os locais são os que a
 | Pergunta | Resposta |
 |---|---|
 | Em que fichamento eu anotei que, para as elites, o Brasil era uma nação sem povo? | `Documentos/leituras/fich questao racial.docx`, página 2, parágrafo 1. A citação original está em `misc/A questao racial na politica brasileira os ultimos quinze an.pdf`, página 4, linha 12 (Guimarães, 2001). |
+| Onde está o trecho de Adorno em que o fascista é uma mistura de barbeiro de bairro e King Kong? | `Downloads/teoria.pdf`, página 7, linha 34. O texto diz "barbeiro suburbano": a busca pela frase lembrada ("barbeiro de bairro") não acha nada, e `NEAR(barbeiro "king kong", 30)` acha. |
 | O que eu tenho sobre a política externa do governo Dilma? | `Receitas/por revisar/Balanco da politica externa de Dilma Rousseff perspectivas f.pdf` (Saraiva). Está numa pasta de receitas. |
 | Quantas cópias eu tenho de "Brazilian Political Institutions: an Inconclusive Debate"? | Duas, idênticas, em `misc/`. |
 | Onde está o artigo sobre raça e política de assistência social na psicologia? | `Contratos/por revisar/abr/IMG_20241116_4816.pdf` (Oliveira, 2019). Pegadinha: veja abaixo. |

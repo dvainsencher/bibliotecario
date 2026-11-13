@@ -8,9 +8,11 @@ De onde veio cada arquivo de `exemplo/` e o que ele é. Serve de gabarito da cla
 - **TheMealDB:** receitas da base aberta themealdb.com, convertidas em PDF ou HTML.
 - **Sintético:** inventado para o treinamento. Nomes, CPFs, CNPJs e valores são falsos (os números não passam no dígito verificador).
 - **Fichamento de Guimarães:** escrito para o treinamento, sobre o artigo de mesmo nome que está na amostra.
+- **Adorno:** *A teoria freudiana e o modelo fascista de propaganda* (1951), tradução de Francisco Rüdiger, publicada no [Arquivo Marxista na Internet](https://www.marxists.org/portugues/adorno/1951/mes/teoria.htm), com fonte no blog do tradutor e no NUPESE (UFG). Paginado em PDF para o treinamento. Os direitos são do autor e do tradutor.
 
 | Arquivo | O que é | Título | Fonte |
 |---|---|---|---|
+| `Downloads/teoria.pdf` | artigo | A teoria freudiana e o modelo fascista de propaganda (Adorno, 1951) | [marxists.org](https://www.marxists.org/portugues/adorno/1951/mes/teoria.htm) |
 | `Documentos/leituras/fich questao racial.docx` | fichamento | Fichamento: Guimarães, A questão racial na política brasileira | Sintético |
 | `2023/para revisar.csv` | planilha | Exportação de gastos (CSV) | Sintético |
 | `2023/pessoal/copia truncada de Desigualdade social e leite..pdf.pdf` | arquivo corrompido | cópia truncada de Desigualdade social e leite..pdf | Sintético |
