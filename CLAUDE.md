@@ -10,5 +10,5 @@ Regras
 - Registre toda cópia, renomeação ou movimento na tabela movimentos (os scripts já fazem isso).
 - Não abra arquivos marcados como sensíveis.
 - Não leia PDFs inteiros: consulte o índice.
-- Scripts em Python 3, só com a biblioteca padrão, em scripts/. Texto de PDF com pdftotext; .docx é lido pelo próprio Python.
+- Scripts em Python 3.9 ou mais novo, em scripts/, só com a biblioteca padrão. Biblioteca externa só se for necessária: versão fixa em requirements.txt, compatível com Python 3.9 e Mac Apple Silicon, instalada num venv do projeto, com instrução no README. Texto de PDF com pdftotext; .docx é lido pelo próprio Python.
 - Responda em português, com frases curtas.
