@@ -89,29 +89,29 @@ def docx(caminho, paragrafos, paginas_app=None):
             z.writestr("docProps/app.xml", f"<Properties><Pages>{paginas_app}</Pages></Properties>")
 
 
-def meta(titulo, autor, ano, tipo, conf=0.9, doi=None, tags=("fascismo",)):
+def meta(titulo, autor, ano, tipo, conf=0.9, doi=None, tags=("democracia",)):
     return (f"META|{json.dumps({'titulo': titulo, 'autor': autor, 'ano': ano, 'tipo': tipo, 'conf': conf, 'doi': doi, 'tags': list(tags)})}")
 
 
 def gerar_amostra(origem):
-    m_adorno = meta("Teoria freudiana e o padrão da propaganda fascista", "Theodor Adorno", "1951", "artigo",
-                    doi="10.1000/adorno.1951")
+    m_artigo = meta("A questão racial na política brasileira", "Antonio Sergio Guimaraes", "2001", "artigo",
+                     doi="10.1000/guimaraes.2001")
     capa = "Revista de Estudos Críticos\nVolume 3"
-    artigo = [capa, "Resumo\n" + m_adorno + "\nO artigo discute a propaganda fascista. " + LONGO,
-              "Introdução\nA análise segue.\nO conceito de pseudoindividualizacao aparece nesta linha.\n" + LONGO]
-    pdf(origem / "artigos" / "Adorno_teoria.pdf", artigo)
+    artigo = [capa, "Resumo\n" + m_artigo + "\nO artigo discute a questão racial na política. " + LONGO,
+              "Introdução\nA análise segue.\nO conceito de branqueamento aparece nesta linha.\n" + LONGO]
+    pdf(origem / "artigos" / "Guimaraes_questao_racial.pdf", artigo)
     (origem / "Downloads").mkdir(parents=True)
-    shutil.copy2(origem / "artigos" / "Adorno_teoria.pdf", origem / "Downloads" / "download (1).pdf")
+    shutil.copy2(origem / "artigos" / "Guimaraes_questao_racial.pdf", origem / "Downloads" / "download (1).pdf")
     pdf(origem / "Downloads" / "download.pdf", ["Baixado do portal X\n" + capa] + artigo[1:])
     m_ms = meta("Plano nacional de saúde da mulher", "Ministério da Saúde", "2023", "politica",
                 tags=("saude", "politicas publicas", "genero"))
     pdf(origem / "politicas" / "plano_ms.pdf",
         ["Ministério da Saúde", "Resumo\n" + m_ms + "\nMetas para a saúde da mulher. " + LONGO,
          "Capítulo 2\nPúblico-alvo e metas. " + LONGO, "Anexo\n" + LONGO])
-    m_fich = meta("Fichamento de Adorno sobre propaganda fascista", "Theodor Adorno", "1951", "fichamento")
-    docx(origem / "fichamentos" / "fichamento adorno.docx",
-         [m_fich, "Fichamento do texto de Adorno.", LONGO, PAGINA, "Segunda página do fichamento.",
-          "Para Adorno, o fascista é uma mistura de barbeiro de bairro e King Kong.", LONGO], paginas_app=2)
+    m_fich = meta("Fichamento de Guimarães sobre a questão racial", "Antonio Sergio Guimaraes", "2001", "fichamento")
+    docx(origem / "fichamentos" / "fich questao racial.docx",
+         [m_fich, "Fichamento do texto de Guimarães.", LONGO, PAGINA, "Segunda página do fichamento.",
+          "Para as elites, o Brasil era uma nação sem povo e sem uma cultura nacional.", LONGO], paginas_app=2)
     pdf(origem / "pessoal" / "RG_digitalizado.pdf", ["Documento de identidade"])
     pdf(origem / "Downloads" / "scan_001.pdf", [""])
     (origem / "notas.txt").write_text(
@@ -179,7 +179,7 @@ def main():
     tags = tmp / "tags.md"
     tags.write_text("Lista de exemplo: apague esta linha quando escrever as suas tags.\n" + "".join(
         f"- {t}\n" for t in ("metodologia", "politicas publicas", "saude", "genero", "estado", "empresariado",
-                              "fascismo", "democracia")), encoding="utf-8")
+                              "raca", "democracia")), encoding="utf-8")
     env = dict(os.environ, BIBLIOTECA_CONFIG=str(cfg), BIBLIOTECA_TAGS=str(tags))
     antes = sorted(str(p) for p in origem.rglob("*"))
 
@@ -207,6 +207,28 @@ def main():
                        env=dict(env, BIBLIOTECA_TAGS=str(tmp / "sumiu.md")), capture_output=True, text=True)
     confere(not r.stderr and "lista de tags não encontrada" in r.stdout, "tags.md apagado vira 'falta', sem erro de Python")
 
+    relativo = tmp / "config_relativo.json"
+    relativo.write_text('{"origens": ["Amostra"], "acervo": "Biblioteca"}', encoding="utf-8")
+    r = subprocess.run([sys.executable, "-c", "import json, comum; print(json.dumps(comum.carregar_config()))"],
+                       env=dict(env, BIBLIOTECA_CONFIG=str(relativo), PYTHONPATH=str(SCRIPTS)),
+                       cwd=tempfile.gettempdir(), capture_output=True, text=True)
+    cfg_rel = json.loads(r.stdout) if r.returncode == 0 else {}
+    confere(cfg_rel.get("origens") == [str(tmp / "Amostra")] and cfg_rel.get("acervo") == str(tmp / "Biblioteca"),
+            "caminhos relativos em config.json valem a partir da pasta do projeto, de qualquer pasta atual")
+    r = subprocess.run([sys.executable, str(SCRIPTS / "verificar.py")],
+                       env=dict(env, BIBLIOTECA_CONFIG=str(relativo)), cwd=tempfile.gettempdir(),
+                       capture_output=True, text=True)
+    confere(re.search(r"^\s*ok\s+pasta de origem Amostra", r.stdout, re.M) and "a pasta não existe" not in r.stdout,
+            "a verificação acha a pasta de origem relativa, de qualquer pasta atual")
+    if (RAIZ / ".git").exists() and shutil.which("git"):
+        # A amostra vai para o git, mas o que o Mac e o bibliotecário criam dentro dela não pode ir
+        nomes = ["exemplo/.DS_Store", "exemplo/pasta/._foto.pdf", "exemplo/.env", "exemplo/chave.key",
+                 "exemplo/indice.db", "exemplo/lotes/lote_001_resposta.jsonl"]
+        r = subprocess.run(["git", "-C", str(RAIZ), "check-ignore", "--no-index"] + nomes,
+                           capture_output=True, text=True)
+        ignorados = set(r.stdout.split())
+        confere(ignorados == set(nomes), "arquivos de sistema, segredos e bancos dentro de exemplo/ ficam fora do git")
+
     print("1. Inventário")
     out = rodar(env, "inventario.py")
     confere("Arquivos novos no índice: 9" in out, "9 arquivos de texto entram no índice (a foto fica de fora)")
@@ -218,15 +240,15 @@ def main():
     confere("com texto: 5" in out and "sem texto: 1" in out, "5 com texto, 1 escaneado sem texto")
 
     print("3. Busca por trecho antes de classificar")
-    out = rodar(env, "buscar.py", "paginas", 'NEAR(barbeiro "king kong", 30)')
-    confere("fichamento adorno.docx" in out and "King Kong" in out, "acha o trecho do King Kong no fichamento")
+    out = rodar(env, "buscar.py", "paginas", 'NEAR(nação povo, 5)')
+    confere("fich questao racial.docx" in out and "cultura nacional" in out, "acha o trecho da nação sem povo no fichamento")
     confere("página 2, parágrafo 2" in out, "no .docx com marcas do Word, indica página e parágrafo")
     achou = re.search(r"ler_paginas\.py (\d+) (\d+)", out)
     confere(bool(achou), "a busca diz como ler o trecho com ler_paginas.py")
     if achou:
         out = rodar(env, "ler_paginas.py", achou.group(1), achou.group(2))
-        confere("--- página 2 ---" in out and "King Kong" in out, "ler_paginas mostra a página do Word")
-    out = rodar(env, "buscar.py", "paginas", "pseudoindividualizacao")
+        confere("--- página 2 ---" in out and "nação sem povo" in out, "ler_paginas mostra a página do Word")
+    out = rodar(env, "buscar.py", "paginas", "branqueamento")
     confere("página 3, linha 3" in out, "no PDF, indica página e linha")
     out = rodar(env, "buscar.py", "paginas", "heteronomia")
     confere("linha 4" in out and "página" not in out, "no .txt, indica só a linha")
@@ -238,7 +260,7 @@ def main():
     out = rodar(env, "selecionar_paginas.py", "--lote", "10")
     confere("Documentos para classificar: 5 em 1 lote(s)" in out, "5 documentos em 1 lote")
     lote = json.loads((tmp / "lotes" / "lote_001.json").read_text(encoding="utf-8"))
-    artigo = next(d for d in lote if d["nome_original"] in ("Adorno_teoria.pdf", "download (1).pdf"))
+    artigo = next(d for d in lote if d["nome_original"] in ("Guimaraes_questao_racial.pdf", "download (1).pdf"))
     confere(artigo["paginas"][0]["pagina"] == 2, "o seletor pula a capa e começa no Resumo")
     resposta = classificar_lote(tmp / "lotes" / "lote_001.json")
     out = rodar(env, "gravar_classificacao.py", str(resposta))
@@ -253,15 +275,15 @@ def main():
     out = rodar(env, "aplicar.py", "--simular")
     confere(not acervo.exists(), "a simulação não cria nada")
     confere("(confiança 0.90)" in out, "o plano mostra a confiança de cada item")
-    aviso = [l for l in out.splitlines() if "Adorno_teoria.pdf é cópia de" in l]
-    confere(bool(aviso) and "Artigos/Adorno_1951_" in aviso[0],
+    aviso = [l for l in out.splitlines() if "Guimaraes_questao_racial.pdf é cópia de" in l]
+    confere(bool(aviso) and "Artigos/Guimaraes_2001_" in aviso[0],
             "o plano avisa para onde foi a cópia principal de um duplicado")
     out = rodar(env, "aplicar.py")
     nomes = sorted(str(p.relative_to(acervo)) for p in acervo.rglob("*") if p.is_file())
     print("     acervo:", nomes)
-    confere(any(n.startswith("Artigos/Adorno_1951_") for n in nomes), "artigo vai para Artigos/ com o nome novo")
+    confere(any(n.startswith("Artigos/Guimaraes_2001_") for n in nomes), "artigo vai para Artigos/ com o nome novo")
     confere(any(n.startswith("Documentos-de-politica/MS_2023_") for n in nomes), "política vai para Documentos-de-politica/")
-    confere(any(n.startswith("Fichamentos/Fichamento_Adorno_1951") for n in nomes), "fichamento vai para Fichamentos/")
+    confere(any(n.startswith("Fichamentos/Fichamento_Guimaraes_2001") for n in nomes), "fichamento vai para Fichamentos/")
     confere("_revisar/scan_001.pdf" in nomes, "escaneado vai para _revisar/ com o nome original")
     confere(any(n.startswith("_revisar/Anonimo_sd_") for n in nomes), "confiança 0,6 vai para _revisar/ com o nome sugerido")
     confere(len(nomes) == 5, "5 arquivos copiados (duplicatas e sensíveis ficam de fora)")
@@ -270,7 +292,7 @@ def main():
     confere("Arquivos novos no índice: 0" in out, "rodar o inventário de novo depois de aplicar não duplica nada")
 
     print("7. Busca por documento")
-    out = rodar(env, "buscar.py", "documentos", "propaganda fascista")
+    out = rodar(env, "buscar.py", "documentos", "questao racial")
     confere("Biblioteca/Artigos/" in out, "a busca devolve o caminho novo")
     out = rodar(env, "buscar.py", "documentos", "saude", "--tipo", "politica")
     confere("Plano nacional" in out, "filtro por tipo funciona, sem diferença de acento")

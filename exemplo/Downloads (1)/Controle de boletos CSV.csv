@@ -1,0 +1,16 @@
+vencimento;descricao;valor;pago
+11/02/2023;seguro;491,59;nao
+14/02/2023;internet;1047,73;nao
+20/02/2023;energia;1068,69;sim
+02/03/2023;cartão;1796,16;sim
+05/03/2023;cartão;679,87;nao
+17/03/2023;energia;103,78;nao
+25/03/2023;internet;2478,09;sim
+27/03/2023;aluguel;2731,02;nao
+01/04/2023;internet;572,94;nao
+07/04/2023;escola;904,59;nao
+13/04/2023;condomínio;122,28;nao
+21/04/2023;escola;3166,37;sim
+01/05/2023;aluguel;1718,98;sim
+13/05/2023;aluguel;2618,90;nao
+16/05/2023;cartão;1131,50;sim

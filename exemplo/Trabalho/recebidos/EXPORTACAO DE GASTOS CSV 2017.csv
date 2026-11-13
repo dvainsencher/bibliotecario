@@ -1,0 +1,33 @@
+data;estabelecimento;categoria;valor
+01/04/2024;Uber;Assinaturas;557,05
+03/04/2024;Posto Ipiranga;Lazer;894,38
+03/04/2024;Farmácia Central;Outros;721,37
+04/04/2024;Farmácia Central;Educação;109,77
+08/04/2024;Uber;Assinaturas;649,48
+09/04/2024;Uber;Vestuário;415,13
+13/04/2024;Padaria São Jorge;Vestuário;80,31
+15/04/2024;Uber;Alimentação;693,58
+15/04/2024;Padaria São Jorge;Lazer;628,04
+15/04/2024;Farmácia Central;Vestuário;395,69
+18/04/2024;Posto Ipiranga;Transporte;600,06
+22/04/2024;Mercado Bom Preço;Outros;166,24
+25/04/2024;Padaria São Jorge;Alimentação;251,40
+28/04/2024;Posto Ipiranga;Educação;453,75
+02/05/2024;Farmácia Central;Moradia;145,98
+06/05/2024;Mercado Bom Preço;Moradia;888,19
+10/05/2024;Mercado Bom Preço;Educação;805,41
+14/05/2024;Uber;Moradia;782,81
+16/05/2024;Uber;Alimentação;331,88
+19/05/2024;Mercado Bom Preço;Moradia;176,62
+21/05/2024;Farmácia Central;Alimentação;442,27
+25/05/2024;Farmácia Central;Assinaturas;545,14
+26/05/2024;Uber;Outros;318,59
+27/05/2024;Posto Ipiranga;Lazer;127,20
+28/05/2024;Farmácia Central;Alimentação;682,80
+30/05/2024;Padaria São Jorge;Saúde;401,14
+01/06/2024;Padaria São Jorge;Moradia;183,76
+01/06/2024;Padaria São Jorge;Vestuário;616,22
+03/06/2024;Padaria São Jorge;Transporte;431,57
+04/06/2024;Posto Ipiranga;Educação;354,59
+05/06/2024;Uber;Assinaturas;763,76
+05/06/2024;Padaria São Jorge;Alimentação;521,38
