@@ -11,7 +11,8 @@ Para treinar, use a amostra `exemplo/`, que vem no projeto. As respostas certas 
 1. Instale, se ainda não tiver: `curl -fsSL https://claude.ai/install.sh | bash`. Feche e abra o Terminal e confira com `claude --version`.
 2. Crie uma pasta vazia para o seu projeto e entre nela: `mkdir -p ~/projetos-ia/minha-biblioteca` e `cd ~/projetos-ia/minha-biblioteca`.
 3. Copie a amostra para lá, para trabalhar sobre uma cópia: `cp -R ~/projetos-ia/bibliotecario/exemplo ~/projetos-ia/minha-biblioteca/amostra` (depois de baixar o bibliotecário com `git clone`, como no README).
-4. Abra o Claude Code: `claude`. Na primeira vez, ele abre o navegador para você entrar na conta.
+4. Abra o Claude Code: `claude`. Na primeira vez, ele abre o navegador para você entrar na conta. Entre com a conta do Pro, não com uma chave de API.
+5. Para não ter cobrança surpresa: no claude.ai, Settings, Usage, deixe desligada a opção "Usage credits". Com a opção desligada, quando o limite do Pro acaba, o Claude Code espera o limite renovar em vez de cobrar.
 
 O básico dentro do Claude Code:
 
@@ -91,6 +92,8 @@ Vou usar isso muitas vezes e o acervo vai crescer para milhares de arquivos.
 
 Como vou saber que funcionou: estas buscas, com a resposta que já sei:
 - o fichamento em que as elites viam o Brasil como uma nação sem povo;
+- o trecho de Adorno em que o fascista é uma mistura de barbeiro de bairro
+  e King Kong;
 - o que tenho sobre a política externa do governo Dilma;
 - quantas cópias tenho de "Brazilian Political Institutions".
 
@@ -142,6 +145,7 @@ Repita com as outras buscas do gabarito.
 O que observar:
 
 - O trecho veio literal? Abra o arquivo e confira a página de pelo menos um resultado. A IA inventa com a mesma confiança com que acerta.
+- A frase lembrada nem sempre é a do texto. Você lembra "barbeiro de bairro", e a tradução diz "barbeiro suburbano". A busca exata não acha nada. Por isso o pedido manda tentar variações, como as duas palavras mais raras perto uma da outra.
 - Quantas buscas acertaram? Anote o placar.
 - Quando errou, foi porque o arquivo não estava na indexação (sensível, tipo não lido) ou porque a busca não achou?
 
