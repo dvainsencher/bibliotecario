@@ -17,7 +17,7 @@ Modo lote (acervo existente)
 4. Para cada arquivo indice/lotes/lote_NNN.json criado agora, chame o subagente classificador com o caminho do lote. Ele escreve lote_NNN_resposta.jsonl.
 5. python3 scripts/gravar_classificacao.py indice/lotes/lote_NNN_resposta.jsonl --modelo haiku
 6. python3 scripts/duplicados_conteudo.py --simular. Se houver pares "parecidos", leia os dois resumos no índice e me diga se são o mesmo documento. Depois rode sem --simular.
-7. python3 scripts/aplicar.py --simular e me mostre o plano resumido: quantos vão para cada pasta, quantos para _revisar/ e por quê, quantos duplicados e sensíveis. Mostre 10 nomes novos de exemplo.
+7. python3 scripts/aplicar.py --simular e me mostre o plano resumido: quantos vão para cada pasta, quantos para _revisar/ e por quê, quantos duplicados e sensíveis. Mostre 10 nomes novos de exemplo, com a confiança. Para os duplicados, repita o aviso do plano: só uma cópia entra no acervo, e diga para onde foi a principal.
 8. Só depois de "pode aplicar": python3 scripts/aplicar.py
 9. Termine com python3 scripts/estado.py e um resumo em poucas linhas.
 

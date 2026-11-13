@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -60,8 +61,19 @@ def pdf(caminho, paginas):
     Path(caminho).write_bytes(bytes(saida))
 
 
-def docx(caminho, paragrafos):
-    corpo = "".join(f"<w:p><w:r><w:t>{p}</w:t></w:r></w:p>" for p in paragrafos)
+PAGINA = "<<nova pagina>>"  # na lista de parágrafos do docx: o próximo parágrafo começa uma página
+
+
+def docx(caminho, paragrafos, paginas_app=None):
+    """.docx mínimo. PAGINA na lista grava a marca que o Word deixa onde a página começou."""
+    corpo, quebra = "", False
+    for p in paragrafos:
+        if p == PAGINA:
+            quebra = True
+            continue
+        marca = "<w:lastRenderedPageBreak/>" if quebra else ""
+        corpo += f'<w:p w:rsidR="00A1"><w:pPr><w:jc w:val="both"/></w:pPr><w:r>{marca}<w:t xml:space="preserve">{p}</w:t></w:r></w:p>'
+        quebra = False
     xml = ('<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/'
            f'wordprocessingml/2006/main"><w:body>{corpo}</w:body></w:document>')
     Path(caminho).parent.mkdir(parents=True, exist_ok=True)
@@ -69,6 +81,8 @@ def docx(caminho, paragrafos):
         z.writestr("[Content_Types].xml", '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/'
                    'package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/></Types>')
         z.writestr("word/document.xml", xml)
+        if paginas_app is not None:
+            z.writestr("docProps/app.xml", f"<Properties><Pages>{paginas_app}</Pages></Properties>")
 
 
 def meta(titulo, autor, ano, tipo, conf=0.9, doi=None, tags=("fascismo",)):
@@ -80,7 +94,7 @@ def gerar_amostra(origem):
                     doi="10.1000/adorno.1951")
     capa = "Revista de Estudos Críticos\nVolume 3"
     artigo = [capa, "Resumo\n" + m_adorno + "\nO artigo discute a propaganda fascista. " + LONGO,
-              "Introdução\nA análise segue. " + LONGO]
+              "Introdução\nA análise segue.\nO conceito de pseudoindividualizacao aparece nesta linha.\n" + LONGO]
     pdf(origem / "artigos" / "Adorno_teoria.pdf", artigo)
     (origem / "Downloads").mkdir(parents=True)
     shutil.copy2(origem / "artigos" / "Adorno_teoria.pdf", origem / "Downloads" / "download (1).pdf")
@@ -92,12 +106,13 @@ def gerar_amostra(origem):
          "Capítulo 2\nPúblico-alvo e metas. " + LONGO, "Anexo\n" + LONGO])
     m_fich = meta("Fichamento de Adorno sobre propaganda fascista", "Theodor Adorno", "1951", "fichamento")
     docx(origem / "fichamentos" / "fichamento adorno.docx",
-         [m_fich, "Fichamento do texto de Adorno.",
-          "Para Adorno, o fascista é uma mistura de barbeiro de bairro e King Kong.", LONGO])
+         [m_fich, "Fichamento do texto de Adorno.", LONGO, PAGINA, "Segunda página do fichamento.",
+          "Para Adorno, o fascista é uma mistura de barbeiro de bairro e King Kong.", LONGO], paginas_app=2)
     pdf(origem / "pessoal" / "RG_digitalizado.pdf", ["Documento de identidade"])
     pdf(origem / "Downloads" / "scan_001.pdf", [""])
     (origem / "notas.txt").write_text(
-        meta("Notas soltas de leitura", "Anônimo", None, "outro", conf=0.6, tags=()) + "\n" + LONGO, encoding="utf-8")
+        meta("Notas soltas de leitura", "Anônimo", None, "outro", conf=0.6, tags=()) + "\n\nSegunda linha em branco acima.\n"
+        "Aqui se fala de heteronomia.\n" + LONGO, encoding="utf-8")
     (origem / "Entrevistas").mkdir()
     (origem / "Entrevistas" / "participante_03.txt").write_text("Transcrição com nome real.", encoding="utf-8")
     (origem / "foto.jpg").write_bytes(b"nao e texto")
@@ -172,6 +187,19 @@ def main():
     print("3. Busca por trecho antes de classificar")
     out = rodar(env, "buscar.py", "paginas", 'NEAR(barbeiro "king kong", 30)')
     confere("fichamento adorno.docx" in out and "King Kong" in out, "acha o trecho do King Kong no fichamento")
+    confere("página 2, parágrafo 2" in out, "no .docx com marcas do Word, indica página e parágrafo")
+    achou = re.search(r"ler_paginas\.py (\d+) (\d+)", out)
+    confere(bool(achou), "a busca diz como ler o trecho com ler_paginas.py")
+    if achou:
+        out = rodar(env, "ler_paginas.py", achou.group(1), achou.group(2))
+        confere("--- página 2 ---" in out and "King Kong" in out, "ler_paginas mostra a página do Word")
+    out = rodar(env, "buscar.py", "paginas", "pseudoindividualizacao")
+    confere("página 3, linha 3" in out, "no PDF, indica página e linha")
+    out = rodar(env, "buscar.py", "paginas", "heteronomia")
+    confere("linha 4" in out and "página" not in out, "no .txt, indica só a linha")
+    with sqlite3.connect(str(tmp / "biblioteca.db")) as con:
+        sem_data = con.execute("SELECT COUNT(*) FROM documentos WHERE modificado_em IS NULL").fetchone()[0]
+    confere(sem_data == 0, "o inventário grava a data de modificação de cada arquivo")
 
     print("4. Lotes e classificação")
     out = rodar(env, "selecionar_paginas.py", "--lote", "10")
@@ -191,6 +219,10 @@ def main():
     print("6. Plano e cópia")
     out = rodar(env, "aplicar.py", "--simular")
     confere(not acervo.exists(), "a simulação não cria nada")
+    confere("(confiança 0.90)" in out, "o plano mostra a confiança de cada item")
+    aviso = [l for l in out.splitlines() if "Adorno_teoria.pdf é cópia de" in l]
+    confere(bool(aviso) and "Artigos/Adorno_1951_" in aviso[0],
+            "o plano avisa para onde foi a cópia principal de um duplicado")
     out = rodar(env, "aplicar.py")
     nomes = sorted(str(p.relative_to(acervo)) for p in acervo.rglob("*") if p.is_file())
     print("     acervo:", nomes)
@@ -201,6 +233,8 @@ def main():
     confere(any(n.startswith("_revisar/Anonimo_sd_") for n in nomes), "confiança 0,6 vai para _revisar/ com o nome sugerido")
     confere(len(nomes) == 5, "5 arquivos copiados (duplicatas e sensíveis ficam de fora)")
     confere(sorted(str(p) for p in origem.rglob("*")) == antes, "a pasta de origem não mudou")
+    out = rodar(env, "inventario.py")
+    confere("Arquivos novos no índice: 0" in out, "rodar o inventário de novo depois de aplicar não duplica nada")
 
     print("7. Busca por documento")
     out = rodar(env, "buscar.py", "documentos", "propaganda fascista")
@@ -234,6 +268,27 @@ def main():
     print("10. Estado")
     out = rodar(env, "estado.py")
     confere("Sensíveis (texto fora do índice):" in out and "participante_03" in out, "estado lista os sensíveis")
+
+    print("11. Arquivo que mudou de lugar fora do bibliotecário")
+    artigo_novo = next((acervo / "Artigos").glob("Souza_2020_*"))
+    artigo_novo.rename(artigo_novo.with_name("renomeado_a_mao.pdf"))
+    out = rodar(env, "inventario.py")
+    confere("Caminhos no índice que não existem mais: 1" in out and artigo_novo.name in out,
+            "o inventário lista caminhos que sumiram")
+
+    print("12. Funções de apoio")
+    sys.path.insert(0, str(SCRIPTS))
+    import comum
+    confere(comum.parece_sensivel("Revista_Exame_2020.pdf") is None, "'Exame' no nome não marca como sensível")
+    confere(comum.parece_sensivel("imposto sobre fortunas.pdf") is None, "'imposto' no nome não marca como sensível")
+    confere(comum.parece_sensivel("pessoal/IRPF 2023.pdf") == "irpf", "IRPF continua sensível")
+    sem_marca = tmp / "sem_marca.docx"
+    docx(sem_marca, ["Um.", "", "Dois.", "Tres."])
+    paginas, paginado = comum.paginas_do_arquivo(sem_marca)
+    confere(not paginado and paginas[0] == ("Um.\nDois.\nTres.", 1), "docx sem marcas vira parágrafos, sem página")
+    uma = tmp / "uma_pagina.docx"
+    docx(uma, ["Um.", "Dois."], paginas_app=1)
+    confere(comum.paginas_do_arquivo(uma)[1], "docx de uma página salvo pelo Word conta como paginado")
 
     print()
     if falhas:

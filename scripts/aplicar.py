@@ -37,8 +37,9 @@ def main():
     con = conectar(cfg)
     acervo = Path(cfg["acervo"])
     pasta_entrada = str(acervo / "_entrada") + "/"
-    docs = con.execute(
-        "SELECT * FROM documentos WHERE situacao IN ('novo', 'duplicata', 'sensivel') ORDER BY id").fetchall()
+    todos = {r["id"]: r for r in con.execute("SELECT * FROM documentos")}
+    docs = [d for d in todos.values() if d["situacao"] in ("novo", "duplicata", "sensivel")]
+    docs.sort(key=lambda d: d["id"])
     if entrada:
         docs = [d for d in docs if d["caminho"].startswith(pasta_entrada)]
     else:
@@ -69,26 +70,17 @@ def main():
             plano.append((d, acervo / "_revisar" / d["nome_original"], "revisar",
                           d["motivo"] or f"confiança {conf:.2f}"))
 
-    operacao = "move" if entrada else "copia"
-    print(f"Plano ({'mover' if entrada else 'copiar'} {len(plano)} arquivo(s)):")
-    for d, dest, sit, motivo in plano:
-        extra = f"  [{motivo}]" if motivo else ""
-        print(f"  {d['nome_original']}  ->  {dest.relative_to(acervo)}{extra}")
-    if pulados:
-        print(f"Duplicatas que não serão copiadas: {len(pulados)}")
-        for d in pulados:
-            print(f"  {d['caminho']}  ({d['motivo']})")
-    if sensiveis:
-        print(f"Sensíveis que ficam onde estão (decida se tira da área liberada): {len(sensiveis)}")
-        for d in sensiveis:
-            print(f"  {d['caminho']}  ({d['motivo']})")
+    destinos = {d["id"]: dest for d, dest, _, _ in plano}
     if simular:
+        relatorio(plano, destinos, pulados, sensiveis, todos, acervo, entrada, feito=False)
         print("Simulação: nada foi copiado nem movido.")
         return
 
+    operacao = "move" if entrada else "copia"
     rodada = agora()
     for d, dest, sit, motivo in plano:
         dest = destino_livre(dest)
+        destinos[d["id"]] = dest
         dest.parent.mkdir(parents=True, exist_ok=True)
         if entrada:
             shutil.move(d["caminho"], dest)
@@ -101,7 +93,52 @@ def main():
         con.execute("UPDATE documentos SET caminho = ?, caminho_origem = ?, situacao = ? WHERE id = ?",
                     (str(dest), d["caminho"], sit if d["situacao"] != "duplicata" else "duplicata", d["id"]))
         con.commit()
-    print(f"Feito: {len(plano)} arquivo(s). Rodada registrada em movimentos como {rodada}.")
+    relatorio(plano, destinos, pulados, sensiveis, todos, acervo, entrada, feito=True)
+    print(f"Rodada registrada em movimentos como {rodada}.")
+
+
+def principal_de(d, todos):
+    """Segue duplicata_de até o documento que não é duplicata (um duplicado pode apontar para outro)."""
+    vistos = set()
+    while d["situacao"] == "duplicata" and d["duplicata_de"] in todos and d["id"] not in vistos:
+        vistos.add(d["id"])
+        d = todos[d["duplicata_de"]]
+    return d
+
+
+def onde_esta(principal, destinos, acervo, feito):
+    def curto(caminho):
+        caminho = Path(caminho)
+        return str(caminho.relative_to(acervo)) if acervo in caminho.parents else str(caminho)
+    if principal["situacao"] == "sensivel":
+        return "que é sensível e fica onde está"
+    if principal["id"] in destinos:
+        return f"{'que foi' if feito else 'que vai'} para {curto(destinos[principal['id']])}"
+    return f"que está em {curto(principal['caminho'])}"
+
+
+def relatorio(plano, destinos, pulados, sensiveis, todos, acervo, entrada, feito):
+    verbo = ("movido(s)" if entrada else "copiado(s)") if feito else ("mover" if entrada else "copiar")
+    print(f"{'Feito' if feito else 'Plano'} ({len(plano)} arquivo(s) {'' if feito else 'para '}{verbo}):")
+    for d, _, _, motivo in plano:
+        extra = f"  [{motivo}]" if motivo else ""
+        conf = f"  (confiança {d['confianca']:.2f})" if d["confianca"] is not None else ""
+        print(f"  {d['nome_original']}  ->  {destinos[d['id']].relative_to(acervo)}{conf}{extra}")
+    duplicados = pulados + [d for d, _, _, _ in plano if d["situacao"] == "duplicata"]
+    if duplicados:
+        print(f"Duplicados ({len(duplicados)}): só uma cópia de cada documento entra no acervo.")
+        for d in duplicados:
+            p = principal_de(d, todos)
+            if d in pulados:
+                fica = f"Esta cópia fica só na origem: {d['caminho']}"
+            else:
+                fica = f"Esta cópia {'foi' if feito else 'vai'} para _revisar/."
+            print(f"  {d['nome_original']} é cópia de {p['nome_original']} ({d['motivo']}), "
+                  f"{onde_esta(p, destinos, acervo, feito)}. {fica}")
+    if sensiveis:
+        print(f"Sensíveis que ficam onde estão (decida se tira da área liberada): {len(sensiveis)}")
+        for d in sensiveis:
+            print(f"  {d['caminho']}  ({d['motivo']})")
 
 
 if __name__ == "__main__":

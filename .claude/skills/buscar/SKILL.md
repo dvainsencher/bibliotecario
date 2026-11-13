@@ -8,9 +8,11 @@ Ferramentas
 - python3 scripts/buscar.py documentos "consulta" [--tipo T] [--ano-de A] [--ano-ate A]
   busca em título, autores, resumo e tags.
 - python3 scripts/buscar.py paginas "consulta" [--doc ID] [--limite N]
-  busca no texto e devolve documento, página e trecho.
+  busca no texto e devolve documento, local e trecho. O local já vem calculado: "página 12, linha 8" (PDF),
+  "página 3, parágrafo 2" (.docx salvo pelo Word), "parágrafo 14" (.docx sem marcas de página) ou
+  "linha 120" (.txt e .md). Cada resultado traz a linha "mais contexto" com o comando para ler aquele trecho.
 - python3 scripts/ler_paginas.py ID INICIO FIM
-  devolve o texto dessas páginas (no máximo 3).
+  devolve o texto dessas páginas ou blocos (no máximo 3). Use os números da linha "mais contexto".
 As consultas usam a sintaxe FTS5: palavras soltas, "frase exata", OR, NEAR(palavra1 palavra2, 10) e prefixo com asterisco (fascis*). Acentos não importam.
 
 Como buscar
@@ -22,7 +24,7 @@ Como buscar
 
 Como responder
 - Português, frases curtas.
-- Para cada resultado: título, autor, ano, caminho, página e o trecho literal. Até 5 resultados, do mais relevante ao menos, com uma frase sobre por que casou.
+- Para cada resultado: título, autor, ano, caminho, o local exatamente como a busca mostrou (página e linha, página e parágrafo, parágrafo ou linha) e o trecho literal. Não invente página para arquivo que não tem. Até 5 resultados, do mais relevante ao menos, com uma frase sobre por que casou.
 - Se não achou, diga. Nunca invente caminho, título, página ou trecho. Sugira outra busca em uma linha.
 - Se houver duplicatas, mostre o arquivo principal e diga que há cópias.
 
@@ -32,4 +34,4 @@ Sensíveis e segurança
 
 Limites
 - Só leitura. Para mover, renomear ou reclassificar, use a skill organizar.
-- Se um caminho não existir mais, avise e sugira rodar o inventário de novo.
+- Se um caminho não existir mais, avise. O arquivo foi movido ou renomeado fora do bibliotecário. Sugira rodar python3 scripts/inventario.py, que lista os caminhos que sumiram e indexa o arquivo no lugar novo.

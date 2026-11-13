@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS documentos (
   nome_original    TEXT,
   extensao         TEXT,
   tamanho          INTEGER,
+  modificado_em    TEXT,                 -- data de modificação do arquivo
   paginas_total    INTEGER,
+  paginado         INTEGER DEFAULT 1,    -- 0 quando não há página real (.txt, .md, .docx sem marcas do Word)
   tem_texto        INTEGER DEFAULT 1,    -- 0 para escaneado sem OCR
   tipo             TEXT,                 -- artigo, livro, capitulo, tese, fichamento,
                                          -- politica, noticia, dados, outro
@@ -34,7 +36,8 @@ CREATE INDEX IF NOT EXISTS documentos_sha ON documentos(sha256);
 CREATE TABLE IF NOT EXISTS paginas (
   id           INTEGER PRIMARY KEY,
   documento_id INTEGER NOT NULL REFERENCES documentos(id),
-  pagina       INTEGER NOT NULL,         -- página do PDF, ou número do bloco
+  pagina       INTEGER NOT NULL,         -- página do PDF ou do Word; nos outros, número do bloco
+  linha_inicial INTEGER DEFAULT 1,       -- linha (.txt, .md) ou parágrafo (.docx) onde o bloco começa
   texto        TEXT,
   UNIQUE (documento_id, pagina)
 );
