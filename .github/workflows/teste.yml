@@ -1,0 +1,80 @@
+name: Teste
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: "Máquina: macos-14 (Apple Silicon), macos-15, macos-15-intel (Intel), macos-26 ou ubuntu-latest"
+        default: macos-15-intel
+      python:
+        description: "Versão do Python (ex.: 3.9, 3.12). Vazio usa o Python da máquina"
+        default: ""
+
+jobs:
+  teste:
+    name: ${{ matrix.nome }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nome: Mac Apple Silicon
+            os: macos-latest
+          - nome: Mac Intel
+            os: macos-15-intel
+          - nome: Linux
+            os: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar poppler (Mac)
+        if: runner.os == 'macOS'
+        run: brew install poppler
+
+      - name: Instalar poppler (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Versões
+        run: |
+          python3 --version
+          pdftotext -v
+          python3 -c "import sqlite3; c = sqlite3.connect(':memory:'); c.execute('create virtual table t using fts5(x)'); print('FTS5 ok, SQLite', sqlite3.sqlite_version)"
+
+      - name: Rodar o teste
+        run: python3 testes/rodar_teste.py
+
+  personalizado:
+    name: Personalizado (${{ inputs.runner }}, Python ${{ inputs.python || 'da máquina' }})
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar o Python pedido
+        if: inputs.python != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python }}
+
+      - name: Instalar poppler (Mac)
+        if: runner.os == 'macOS'
+        run: brew install poppler
+
+      - name: Instalar poppler (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Versões
+        run: |
+          sw_vers || true
+          uname -m
+          python3 --version
+          pdftotext -v
+          python3 -c "import sqlite3; c = sqlite3.connect(':memory:'); c.execute('create virtual table t using fts5(x)'); print('FTS5 ok, SQLite', sqlite3.sqlite_version)"
+
+      - name: Rodar o teste
+        run: python3 testes/rodar_teste.py
