@@ -21,6 +21,7 @@ RAIZ_MAMBA="$PASTA_PROJ/.mamba"
 BIN="$HOME/.local/bin"
 BIBLIO="${BIBLIOTECARIO_DIR:-$PASTA_PROJ/bibliotecario}"
 PROBLEMAS=0
+MANUAIS=0
 
 mkdir -p "$BIN" "$PASTA_PROJ"
 export PATH="$BIN:$PATH"
@@ -79,7 +80,7 @@ else
   else
     echo "                Instale o git pelo gerenciador de pacotes da sua distribuição."
   fi
-  PROBLEMAS=$((PROBLEMAS + 1))
+  MANUAIS=$((MANUAIS + 1))
 fi
 
 if command -v claude >/dev/null 2>&1; then
@@ -87,7 +88,7 @@ if command -v claude >/dev/null 2>&1; then
 else
   falta "Claude Code"
   echo "                Rode: curl -fsSL https://claude.ai/install.sh | bash"
-  PROBLEMAS=$((PROBLEMAS + 1))
+  MANUAIS=$((MANUAIS + 1))
 fi
 
 # --- Python e pdftotext ---
@@ -193,9 +194,11 @@ if [ -f "$BIBLIO/testes/rodar_teste.py" ]; then
 fi
 
 echo
-if [ "$PROBLEMAS" -eq 0 ]; then
-  echo "Tudo pronto. Feche e abra o Terminal antes de continuar."
-else
-  echo "Faltam $PROBLEMAS item(ns). Leia as linhas [erro] e [falta] acima."
+if [ "$PROBLEMAS" -gt 0 ]; then
+  echo "Deu erro em $PROBLEMAS item(ns). Leia as linhas [erro] acima."
   exit 1
+elif [ "$MANUAIS" -gt 0 ]; then
+  echo "O que o script instala está pronto. Falta instalar à mão o que aparece como [falta] acima."
+else
+  echo "Tudo pronto. Feche e abra o Terminal antes de continuar."
 fi
