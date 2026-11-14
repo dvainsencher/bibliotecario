@@ -1,0 +1,54 @@
+name: Instalar
+
+on:
+  pull_request:
+    paths: ['scripts/instalar.sh', '.github/workflows/instalar.yml']
+  push:
+    branches: [main]
+    paths: ['scripts/instalar.sh', '.github/workflows/instalar.yml']
+  workflow_dispatch:
+
+jobs:
+  instalar:
+    name: ${{ matrix.nome }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { nome: Mac Apple Silicon, os: macos-latest, forcar: "0" }
+          - { nome: Mac Intel, os: macos-15-intel, forcar: "0" }
+          - { nome: Mac Intel (Python do ambiente), os: macos-15-intel, forcar: "1" }
+          - { nome: Linux, os: ubuntu-latest, forcar: "0" }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deixar a máquina sem poppler
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            brew uninstall --ignore-dependencies poppler 2>/dev/null || true
+          else
+            sudo apt-get remove -y poppler-utils 2>/dev/null || true
+          fi
+          if command -v pdftotext; then echo "pdftotext ainda existe"; exit 1; fi
+
+      - name: Rodar o instalador (primeira vez)
+        env:
+          BIBLIOTECARIO_DIR: ${{ github.workspace }}
+          INSTALAR_FORCAR_PYTHON: ${{ matrix.forcar }}
+        run: bash scripts/instalar.sh
+
+      - name: Rodar de novo (não deve instalar nada)
+        env:
+          BIBLIOTECARIO_DIR: ${{ github.workspace }}
+          INSTALAR_FORCAR_PYTHON: ${{ matrix.forcar }}
+        run: |
+          bash scripts/instalar.sh | tee saida.txt
+          if grep -q 'instalando' saida.txt; then echo "reinstalou"; exit 1; fi
+
+      - name: Conferir num shell novo
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          pdftotext -v
+          python3 --version
+          cat ~/.bashrc | tail -3
