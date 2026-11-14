@@ -32,6 +32,7 @@ Limites: o GitHub só oferece versões recentes de macOS. Um Mac Intel com macOS
 ## Estado da validação
 
 - Feito: teste passa em macos-latest (Apple Silicon), macos-15-intel e ubuntu-latest, com o Python que vem na máquina (3.14 e 3.15) e poppler do Homebrew.
+- Feito: teste passa em macos-15-intel (macOS 15.7, x86_64) com Python 3.9.25, o mais antigo suportado.
 - Pendente: versões reais dos Macs e do Python dos participantes. Quando chegarem, rodar o passo acima com cada combinação e registrar o resultado na tabela.
 
 | Participante | macOS | Chip | Python | runner usado | Resultado |
